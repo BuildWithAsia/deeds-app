@@ -1,13 +1,9 @@
-const translateFn =
-  (typeof window !== "undefined" && window.deedsTranslate) || (() => null);
+const translateWithFallback =
+  (typeof window !== "undefined" && window.deedsTranslateWithFallback) ||
+  ((key, fallback, vars) => fallback);
 
 function t(key, fallback, vars) {
-  try {
-    const value = translateFn ? translateFn(key, vars) : null;
-    return value || fallback;
-  } catch (error) {
-    return fallback;
-  }
+  return translateWithFallback(key, fallback, vars);
 }
 
 const toneClassMap = {
@@ -78,11 +74,18 @@ function getActiveProfile() {
 }
 
 let activeProfile = getActiveProfile();
+let currentQueueItems = [];
 
 function requireAdminSession() {
   activeProfile = getActiveProfile();
   if (!activeProfile || !activeProfile.isAdmin || !activeProfile.sessionToken) {
-    setFlash("Administrator session required. Please log in again.", "error");
+    setFlash(
+      t(
+        "verify.adminRequired",
+        "Administrator session required. Please log in again.",
+      ),
+      "error",
+    );
     return false;
   }
   return true;
@@ -119,6 +122,7 @@ function formatDate(value) {
 }
 
 function renderQueue(items) {
+  currentQueueItems = Array.isArray(items) ? items : [];
   const table = document.querySelector('[data-role="table"]');
   const tbody = document.querySelector('[data-role="queue"]');
   const loading = document.querySelector('[data-role="loading"]');
@@ -158,10 +162,14 @@ function renderQueue(items) {
     deedCell.className = "px-6 py-4 align-top";
     const title = document.createElement("div");
     title.className = "font-semibold text-slate-900";
-    title.textContent = item?.title || "Untitled deed";
+    title.textContent = item?.title || t("verify.untitled", "Untitled deed");
     const meta = document.createElement("div");
     meta.className = "mt-1 text-xs text-slate-500";
-    meta.textContent = `Deed #${item?.id ?? "—"} • Member ${item?.user_id ?? "—"}`;
+    meta.textContent = t(
+      "verify.queueMeta",
+      `Deed #${item?.id ?? "—"} • Member ${item?.user_id ?? "—"}`,
+      { id: item?.id ?? "—", user: item?.user_id ?? "—" },
+    );
     deedCell.appendChild(title);
     deedCell.appendChild(meta);
 
@@ -195,7 +203,7 @@ function renderQueue(items) {
       link.textContent = t("verify.openProof", "Open proof");
       proofCell.appendChild(link);
     } else {
-      proofCell.textContent = "No link provided";
+      proofCell.textContent = t("verify.noProof", "No link provided");
       proofCell.classList.add("text-slate-500");
     }
 
@@ -267,7 +275,12 @@ async function fetchQueue() {
       ),
       "error",
     );
-    updateSummaryBadges({ isUnavailable: true });
+    if (summary) {
+      summary.textContent = t(
+        "verify.summary.unavailable",
+        "Queue unavailable",
+      );
+    }
   } finally {
     if (loading) {
       loading.hidden = true;
@@ -375,13 +388,19 @@ async function verifyDeed(deedId, button) {
 
   const token = activeProfile?.sessionToken;
   if (!token) {
-    setFlash("Missing admin session token. Please sign in again.", "error");
+    setFlash(
+      t(
+        "verify.missingToken",
+        "Missing admin session token. Please sign in again.",
+      ),
+      "error",
+    );
     return;
   }
 
   const originalText = button.textContent;
   button.disabled = true;
-  button.textContent = "Verifying…";
+  button.textContent = t("verify.verifying", "Verifying…");
 
   try {
     const response = await fetch("/api/verify", {
@@ -442,10 +461,14 @@ window.addEventListener("DOMContentLoaded", () => {
   const refreshButton = document.querySelector('[data-action="refresh"]');
   if (refreshButton) {
     refreshButton.addEventListener("click", () => {
-      setFlash("Refreshing queue…", "info");
+      setFlash(t("verify.refreshing", "Refreshing queue…"), "info");
       fetchQueue();
     });
   }
 
   fetchQueue();
+});
+
+window.addEventListener("deeds:languagechange", () => {
+  renderQueue(currentQueueItems);
 });

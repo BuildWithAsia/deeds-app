@@ -42,6 +42,16 @@
       "verificationHint": "Se tout! Lè aksyon an verifye w ap wè kredi yo ajoute sou kont ou.",
       "backLink": "Retounen sou tablo prensipal",
       "submitButton": "Soumèt aksyon an"
+    },
+    "messages": {
+      "loginRequired": "Tanpri konekte ankò avan ou soumèt yon aksyon.",
+      "profileParseError": "Nou pa t kapab li pwofil ou. Tanpri konekte ankò.",
+      "missingAccount": "Nou pa jwenn kont ou. Tanpri konekte ankò.",
+      "missingFields": "Tanpri ranpli tout chan obligatwa avan ou soumèt aksyon an.",
+      "submitting": "Nou ap soumèt aksyon ou…",
+      "saveError": "Nou pa t kapab anrejistre aksyon ou kounye a.",
+      "success": "Aksyon ou te soumèt epi li ap tann verifikasyon.",
+      "networkError": "Nou pa t kapab kontakte sèvè a. Tanpri tcheke koneksyon ou epi eseye ankò."
     }
   },
   "leaderboard": {
@@ -148,6 +158,21 @@
       "submitted": "Soumèt",
       "proof": "Prèv",
       "action": "Aksyon"
-    }
+    },
+    "adminRequired": "Sesyon administratè obligatwa. Tanpri konekte ankò.",
+    "missingToken": "Sesyon administratè manke. Tanpri konekte ankò.",
+    "verifying": "Nou ap verifye…",
+    "refreshing": "Nou ap rafrechi lis la…",
+    "summary": {
+      "loading": "Y ap chaje…",
+      "empty": "0 aksyon k ap tann revizyon",
+      "queue": "{{count}} k ap tann {{label}}",
+      "labelSingular": "aksyon",
+      "labelPlural": "aksyon",
+      "unavailable": "Lis la pa disponib"
+    },
+    "untitled": "Aksyon san tit",
+    "queueMeta": "Aksyon #{{id}} • Manm {{user}}",
+    "noProof": "Pa gen lyen bay"
   }
 }

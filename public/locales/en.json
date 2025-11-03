@@ -42,6 +42,16 @@
       "verificationHint": "That's it! Once your deed is verified you'll see credits added to your account.",
       "backLink": "Back to dashboard",
       "submitButton": "Submit deed"
+    },
+    "messages": {
+      "loginRequired": "Please log in again before submitting a deed.",
+      "profileParseError": "We couldn't read your profile. Please log in again.",
+      "missingAccount": "We couldn't find your account. Please log in again.",
+      "missingFields": "Please complete all required fields before submitting your deed.",
+      "submitting": "Submitting your deed…",
+      "saveError": "We couldn't save your deed right now.",
+      "success": "Your deed was submitted and is waiting for verification.",
+      "networkError": "We couldn't reach the server. Please check your connection and try again."
     }
   },
   "leaderboard": {
@@ -148,6 +158,21 @@
       "submitted": "Submitted",
       "proof": "Proof",
       "action": "Action"
-    }
+    },
+    "adminRequired": "Administrator session required. Please log in again.",
+    "missingToken": "Missing admin session token. Please sign in again.",
+    "verifying": "Verifying…",
+    "refreshing": "Refreshing queue…",
+    "summary": {
+      "loading": "Loading…",
+      "empty": "0 deeds awaiting review",
+      "queue": "{{count}} pending {{label}}",
+      "labelSingular": "deed",
+      "labelPlural": "deeds",
+      "unavailable": "Queue unavailable"
+    },
+    "untitled": "Untitled deed",
+    "queueMeta": "Deed #{{id}} • Member {{user}}",
+    "noProof": "No link provided"
   }
 }

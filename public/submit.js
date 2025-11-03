@@ -1,3 +1,7 @@
+const translateWithFallback =
+  (typeof window !== "undefined" && window.deedsTranslateWithFallback) ||
+  ((key, fallback) => fallback);
+
 const feedbackToneClasses = {
   info: "text-slate-600",
   success: "text-teal-700",
@@ -27,7 +31,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const profileRaw = localStorage.getItem("deeds.profile");
     if (!profileRaw) {
-      alert("Please log in again before submitting a deed.");
+      alert(
+        translateWithFallback(
+          "submit.messages.loginRequired",
+          "Please log in again before submitting a deed.",
+        ),
+      );
       window.location.href = "login.html";
       return;
     }
@@ -38,13 +47,23 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (error) {
       console.warn("Unable to parse cached profile", error);
       localStorage.removeItem("deeds.profile");
-      alert("We couldn't read your profile. Please log in again.");
+      alert(
+        translateWithFallback(
+          "submit.messages.profileParseError",
+          "We couldn't read your profile. Please log in again.",
+        ),
+      );
       window.location.href = "login.html";
       return;
     }
 
     if (!profile?.id) {
-      alert("We couldn't find your account. Please log in again.");
+      alert(
+        translateWithFallback(
+          "submit.messages.missingAccount",
+          "We couldn't find your account. Please log in again.",
+        ),
+      );
       window.location.href = "login.html";
       return;
     }
@@ -58,7 +77,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!title || !proofUrl || !description || !category) {
       updateFeedback(
-        "Please complete all required fields before submitting your deed.",
+        translateWithFallback(
+          "submit.messages.missingFields",
+          "Please complete all required fields before submitting your deed.",
+        ),
         "error",
       );
       return;
@@ -72,7 +94,13 @@ document.addEventListener("DOMContentLoaded", () => {
       proof_url: proofUrl,
     };
 
-    updateFeedback("Submitting your deed…", "info");
+    updateFeedback(
+      translateWithFallback(
+        "submit.messages.submitting",
+        "Submitting your deed…",
+      ),
+      "info",
+    );
 
     if (submitButton) {
       submitButton.disabled = true;
@@ -88,14 +116,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data.success) {
-        const message = data.message || "We couldn't save your deed right now.";
+        const message =
+          data.message ||
+          translateWithFallback(
+            "submit.messages.saveError",
+            "We couldn't save your deed right now.",
+          );
         updateFeedback(message, "error");
         return;
       }
 
       form.reset();
       updateFeedback(
-        "Your deed was submitted and is waiting for verification.",
+        translateWithFallback(
+          "submit.messages.success",
+          "Your deed was submitted and is waiting for verification.",
+        ),
         "success",
       );
 
@@ -103,7 +139,10 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (error) {
       console.error("Failed to submit deed", error);
       updateFeedback(
-        "We couldn't reach the server. Please check your connection and try again.",
+        translateWithFallback(
+          "submit.messages.networkError",
+          "We couldn't reach the server. Please check your connection and try again.",
+        ),
         "error",
       );
     } finally {
