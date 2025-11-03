@@ -684,8 +684,29 @@ async function loadLeaderboard() {
   const updatedElement = document.querySelector(
     '[data-role="leaderboard-updated"]',
   );
+  const blocksList = document.getElementById("leaderboard-blocks");
+  const blocksEmpty = document.querySelector(
+    '[data-role="leaderboard-blocks-empty"]',
+  );
+  const shoutoutsList = document.getElementById("leaderboard-shoutouts");
+  const shoutoutsEmpty = document.querySelector(
+    '[data-role="leaderboard-shoutouts-empty"]',
+  );
   if (!tbody) {
     return;
+  }
+
+  if (blocksList) {
+    blocksList.innerHTML = "";
+  }
+  if (blocksEmpty) {
+    blocksEmpty.hidden = true;
+  }
+  if (shoutoutsList) {
+    shoutoutsList.innerHTML = "";
+  }
+  if (shoutoutsEmpty) {
+    shoutoutsEmpty.hidden = true;
   }
 
   try {
@@ -701,6 +722,7 @@ async function loadLeaderboard() {
     tbody.innerHTML = "";
 
     let totalVerified = 0;
+    const regionTotals = new Map();
 
     entries.forEach((user, index) => {
       const row = document.createElement("tr");
@@ -708,6 +730,17 @@ async function loadLeaderboard() {
       const credits = Number(user?.credits ?? 0);
       const deedCount = Number(user?.deedCount ?? 0);
       totalVerified += deedCount;
+
+      const normalizedRegion =
+        typeof user?.region === "string" && user.region.trim().length > 0
+          ? user.region.trim()
+          : translate("leaderboard.regionUnknown") || "Across the neighborhood";
+      if (deedCount > 0) {
+        regionTotals.set(
+          normalizedRegion,
+          (regionTotals.get(normalizedRegion) || 0) + deedCount,
+        );
+      }
 
       const labelKey =
         deedCount === 1
@@ -743,16 +776,104 @@ async function loadLeaderboard() {
         "No neighbors on the leaderboard yet. Complete a deed to claim the top spot!";
       emptyRow.innerHTML = `
         <td class="px-4 py-6 text-center text-slate-500" colspan="3">
-          ${emptyMessage}
+      ${emptyMessage}
         </td>`;
       tbody.appendChild(emptyRow);
     }
 
+    if (blocksList) {
+      const sortedRegions = Array.from(regionTotals.entries()).sort(
+        (a, b) => b[1] - a[1] || a[0].localeCompare(b[0]),
+      );
+      const topRegions = sortedRegions.slice(0, 3);
+
+      if (topRegions.length === 0) {
+        if (blocksEmpty) {
+          blocksEmpty.hidden = false;
+        }
+      } else {
+        topRegions.forEach(([regionName, count]) => {
+          const regionLabelKey =
+            count === 1
+              ? "leaderboard.deedLabelSingular"
+              : "leaderboard.deedLabelPlural";
+          const regionLabel =
+            translate(regionLabelKey) || (count === 1 ? "deed" : "deeds");
+          const regionMeta =
+            translate("leaderboard.verifiedMeta", {
+              count,
+              label: regionLabel,
+            }) || `${count} ${regionLabel} verified`;
+
+          const item = document.createElement("li");
+          item.className =
+            "flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2";
+          item.innerHTML = `
+            <span>${regionName}</span>
+            <span class="font-semibold text-teal-700">${regionMeta}</span>
+          `;
+          blocksList.appendChild(item);
+        });
+      }
+    }
+
+    if (shoutoutsList) {
+      const highlightNeighbors = entries
+        .filter((user) => {
+          const deedCount = Number(user?.deedCount ?? 0);
+          const creditCount = Number(user?.credits ?? 0);
+          return deedCount > 0 || creditCount > 0;
+        })
+        .slice(0, 2);
+
+      if (highlightNeighbors.length === 0) {
+        if (shoutoutsEmpty) {
+          shoutoutsEmpty.hidden = false;
+        }
+      } else {
+        highlightNeighbors.forEach((user) => {
+          const name = user?.name || translate("leaderboard.anonymous") || "—";
+          const deedCount = Number(user?.deedCount ?? 0);
+          const regionName =
+            typeof user?.region === "string" && user.region.trim().length > 0
+              ? user.region.trim()
+              : translate("leaderboard.regionUnknown") ||
+                "Across the neighborhood";
+
+          const metaParts = [];
+          if (deedCount > 0) {
+            const labelKey =
+              deedCount === 1
+                ? "leaderboard.deedLabelSingular"
+                : "leaderboard.deedLabelPlural";
+            const deedLabel =
+              translate(labelKey) || (deedCount === 1 ? "deed" : "deeds");
+            const deedMeta =
+              translate("leaderboard.verifiedMeta", {
+                count: deedCount,
+                label: deedLabel,
+              }) || `${deedCount} ${deedLabel} verified`;
+            metaParts.push(deedMeta);
+          }
+
+          if (regionName) {
+            metaParts.push(regionName);
+          }
+
+          const item = document.createElement("li");
+          item.className = "rounded-xl border border-slate-100 bg-slate-50 p-4";
+          const description = metaParts.join(" · ");
+          item.innerHTML = `
+            <p class="font-semibold">${name}</p>
+            <p class="mt-1 text-slate-600">${description}</p>
+          `;
+          shoutoutsList.appendChild(item);
+        });
+      }
+    }
+
     if (totalElement) {
-      const totalMessage =
-        translate("leaderboard.totalCount", { count: totalVerified }) ||
-        `${totalVerified} verified deeds`;
-      totalElement.textContent = totalMessage;
+      totalElement.textContent = totalVerified.toLocaleString();
     }
 
     if (updatedElement) {
@@ -776,6 +897,13 @@ async function loadLeaderboard() {
           ${errorMessage}
         </td>
       </tr>`;
+
+    if (blocksEmpty) {
+      blocksEmpty.hidden = false;
+    }
+    if (shoutoutsEmpty) {
+      shoutoutsEmpty.hidden = false;
+    }
   }
 }
 
