@@ -51,7 +51,8 @@
       "submitting": "Submitting your deed…",
       "saveError": "We couldn't save your deed right now.",
       "success": "Your deed was submitted and is waiting for verification.",
-      "networkError": "We couldn't reach the server. Please check your connection and try again."
+      "networkError": "We couldn't reach the server. Please check your connection and try again.",
+      "templateApplied": "We prefilled your selected deed. Update any details before submitting."
     }
   },
   "leaderboard": {
@@ -116,7 +117,14 @@
     "heroEyebrow": "Plan your next impact",
     "heroTitle": "Choose a deed that fits your schedule",
     "heroButton": "Already helped? Log it now",
-    "heroDescription": "Browse curated opportunities from trusted community partners. Each option includes the estimated time commitment and the neighbor you will support."
+    "heroDescription": "Browse curated opportunities from trusted community partners. Each option includes the estimated time commitment and the neighbor you will support.",
+    "selectionHint": "Pick an option below to prefill your submission form.",
+    "selectionButton": "Choose this deed",
+    "selectionSaved": "Great choice! We'll prefill {{title}} on your submission form.",
+    "selectionRedirect": "Opening your submission form…",
+    "selectionError": "We couldn't save that deed. Please try again.",
+    "selectionExisting": "You're set! {{title}} is saved for your submission.",
+    "selectionFallbackTitle": "this deed"
   },
   "auth": {
     "loginTitle": "Welcome back",

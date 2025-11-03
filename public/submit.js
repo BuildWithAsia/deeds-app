@@ -26,6 +26,54 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
+  const template =
+    typeof getSelectedDeedTemplate === "function"
+      ? getSelectedDeedTemplate()
+      : null;
+
+  if (template) {
+    const titleInput = document.getElementById("deedTitle");
+    const descriptionInput = document.getElementById("deedDescription");
+    const categorySelect = document.getElementById("deedCategory");
+
+    let applied = false;
+
+    if (titleInput && !titleInput.value && template.title) {
+      titleInput.value = template.title;
+      applied = true;
+    }
+
+    if (descriptionInput && !descriptionInput.value && template.description) {
+      descriptionInput.value = template.description;
+      applied = true;
+    }
+
+    if (categorySelect && template.category) {
+      const options = Array.from(categorySelect.options || []);
+      const hasOption = options.some(
+        (option) => option.value === template.category,
+      );
+      if (hasOption) {
+        categorySelect.value = template.category;
+        applied = true;
+      }
+    }
+
+    if (applied) {
+      updateFeedback(
+        translateWithFallback(
+          "submit.messages.templateApplied",
+          "We prefilled your selected deed. Update any details before submitting.",
+        ),
+        "info",
+      );
+    }
+
+    if (typeof clearSelectedDeedTemplate === "function") {
+      clearSelectedDeedTemplate();
+    }
+  }
+
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 

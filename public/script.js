@@ -4,6 +4,8 @@ const LANGUAGE_STORAGE_KEY = "deeds.lang";
 const translationsCache = new Map();
 let activeLanguage = DEFAULT_LANGUAGE;
 
+const SELECTED_DEED_KEY = "deeds.selectedTemplate";
+
 function togglePw() {
   const pw = document.getElementById("pw");
   if (!pw) return;
@@ -211,6 +213,74 @@ let latestDeedSummary = null;
 
 let sessionProfile = null;
 
+function normalizeDeedTemplate(template) {
+  if (!template || typeof template !== "object") {
+    return null;
+  }
+
+  const normalized = {
+    id: template.id != null && template.id !== "" ? String(template.id) : null,
+    title: String(template.title || "").trim(),
+    category: String(template.category || "").trim(),
+    description: String(template.description || "").trim(),
+  };
+
+  if (!normalized.title) {
+    return null;
+  }
+
+  return normalized;
+}
+
+function saveSelectedDeedTemplate(template) {
+  if (typeof localStorage === "undefined") {
+    return null;
+  }
+
+  const normalized = normalizeDeedTemplate(template);
+  if (!normalized) {
+    return null;
+  }
+
+  try {
+    localStorage.setItem(SELECTED_DEED_KEY, JSON.stringify(normalized));
+    return normalized;
+  } catch (error) {
+    console.warn("Unable to save selected deed template", error);
+    return null;
+  }
+}
+
+function getSelectedDeedTemplate() {
+  if (typeof localStorage === "undefined") {
+    return null;
+  }
+
+  try {
+    const raw = localStorage.getItem(SELECTED_DEED_KEY);
+    if (!raw) {
+      return null;
+    }
+    const parsed = JSON.parse(raw);
+    return normalizeDeedTemplate(parsed);
+  } catch (error) {
+    console.warn("Unable to read selected deed template", error);
+    clearSelectedDeedTemplate();
+    return null;
+  }
+}
+
+function clearSelectedDeedTemplate() {
+  if (typeof localStorage === "undefined") {
+    return;
+  }
+  try {
+    localStorage.removeItem(SELECTED_DEED_KEY);
+  } catch (error) {
+    console.warn("Unable to clear selected deed template", error);
+  }
+}
+
 function normalizeStoredProfile(rawProfile) {
   if (!rawProfile || typeof rawProfile !== "object") {
     return null;
@@ -285,6 +355,7 @@ function getProfile() {
 
 function clearProfile() {
   localStorage.removeItem("deeds.profile");
+  clearSelectedDeedTemplate();
   setSessionProfile(null);
 }
 
@@ -670,6 +741,7 @@ function attachAuthForms() {
         }
 
         if (result?.profile) {
+          clearSelectedDeedTemplate();
           saveProfile({
             ...result.profile,
             timestamp: Date.now(),
@@ -678,7 +750,9 @@ function attachAuthForms() {
 
         setMessage(messageElement, result?.message || "Success!", "success");
         setTimeout(() => {
-          window.location.href = "dashboard.html";
+          const redirectTarget =
+            mode === "signup" ? "choose.html" : "dashboard.html";
+          window.location.href = redirectTarget;
         }, 400);
       } catch (error) {
         console.error("Auth request failed", error);
@@ -762,6 +836,101 @@ function attachLogout() {
     button.addEventListener("click", () => {
       clearProfile();
       window.location.href = "login.html";
+    });
+  });
+}
+
+function attachDeedSelection() {
+  if (currentPage !== "choose.html") {
+    return;
+  }
+
+  const selectionButtons = document.querySelectorAll("[data-deed-option]");
+  if (!selectionButtons.length) {
+    return;
+  }
+
+  const feedbackTarget = document.querySelector(
+    '[data-role="choose-feedback"]',
+  );
+  const existingTemplate =
+    typeof getSelectedDeedTemplate === "function"
+      ? getSelectedDeedTemplate()
+      : null;
+
+  if (existingTemplate && feedbackTarget) {
+    const title =
+      existingTemplate.title ||
+      translate("choose.selectionFallbackTitle") ||
+      "this deed";
+    const existingMessage =
+      translate("choose.selectionExisting", { title }) ||
+      `${title} is saved for your submission.`;
+    setMessage(feedbackTarget, existingMessage, "info");
+  }
+
+  selectionButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const dataset = button.dataset || {};
+
+      const translatedTitleKey = dataset.deedTitleKey;
+      const translatedDescriptionKey = dataset.deedDescriptionKey;
+      const localizedTitle = translatedTitleKey
+        ? translate(translatedTitleKey)
+        : null;
+      const localizedDescription = translatedDescriptionKey
+        ? translate(translatedDescriptionKey)
+        : null;
+
+      const template = {
+        id: dataset.deedId || null,
+        title:
+          (
+            localizedTitle ||
+            dataset.deedTitle ||
+            button.textContent ||
+            ""
+          ).trim() || "",
+        category: (dataset.deedCategory || "").trim(),
+        description: (
+          localizedDescription ||
+          dataset.deedDescription ||
+          ""
+        ).trim(),
+      };
+
+      button.disabled = true;
+      button.setAttribute("aria-pressed", "true");
+
+      const savedTemplate = saveSelectedDeedTemplate(template);
+      if (!savedTemplate) {
+        button.disabled = false;
+        button.removeAttribute("aria-pressed");
+        const errorMessage =
+          translate("choose.selectionError") ||
+          "We couldn't save that deed. Please try again.";
+        setMessage(feedbackTarget, errorMessage, "error");
+        return;
+      }
+
+      button.blur();
+
+      const displayTitle =
+        savedTemplate.title ||
+        translate("choose.selectionFallbackTitle") ||
+        "this deed";
+      const successMessage =
+        translate("choose.selectionSaved", { title: displayTitle }) ||
+        `Great choice! We'll prefill ${displayTitle} on your submission form.`;
+      setMessage(feedbackTarget, successMessage, "success");
+
+      window.setTimeout(() => {
+        const redirectMessage =
+          translate("choose.selectionRedirect", { title: displayTitle }) ||
+          "Opening your submission form…";
+        setMessage(feedbackTarget, redirectMessage, "info");
+        window.location.href = "submit.html";
+      }, 700);
     });
   });
 }
@@ -1002,6 +1171,7 @@ if (typeof window !== "undefined") {
     await initLocalization();
     attachAuthForms();
     attachLogout();
+    attachDeedSelection();
 
     if (!sessionProfile && PROTECTED_PAGES.has(currentPage)) {
       const profile = getProfile();
