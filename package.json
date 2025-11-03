@@ -8,7 +8,8 @@
     "lint": "prettier --check \"functions/**/*.js\" \"public/**/*.{html,css,js}\"",
     "test": "node --test tests",
     "format": "prettier --write \"functions/**/*.js\" \"public/**/*.{html,css,js}\"",
-    "show:deployment": "node scripts/show-deployment.js"
+    "show:deployment": "node scripts/show-deployment.js",
+    "demo": "wrangler dev --remote --env demo"
   },
   "devDependencies": {
     "prettier": "^3.2.5"
