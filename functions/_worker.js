@@ -772,6 +772,16 @@ export default {
         let normalizedStatus = (requestedStatus || "").trim().toLowerCase();
         let userFilter = null;
 
+        const authHeader = request.headers.get("authorization") || "";
+        const tokenMatch = authHeader.match(/^Bearer\s+(.+)$/i);
+        const token = tokenMatch ? tokenMatch[1].trim() : "";
+        let session = null;
+
+        if (token) {
+          const sessionSecret = resolveSessionSecret(env);
+          session = await verifySessionToken(token, sessionSecret);
+        }
+
         if (requestedUserId != null) {
           const parsedUserId = Number(requestedUserId);
           if (!Number.isInteger(parsedUserId) || parsedUserId <= 0) {
@@ -782,12 +792,6 @@ export default {
             response.headers.set("Access-Control-Allow-Origin", "*");
             return response;
           }
-
-          const authHeader = request.headers.get("authorization") || "";
-          const tokenMatch = authHeader.match(/^Bearer\s+(.+)$/i);
-          const token = tokenMatch ? tokenMatch[1].trim() : "";
-          const sessionSecret = resolveSessionSecret(env);
-          const session = await verifySessionToken(token, sessionSecret);
 
           if (
             !session ||
@@ -805,7 +809,11 @@ export default {
         }
 
         if (!normalizedStatus) {
-          normalizedStatus = "all";
+          if (userFilter != null || (session && session.isAdmin)) {
+            normalizedStatus = "all";
+          } else {
+            normalizedStatus = "verified";
+          }
         }
 
         if (normalizedStatus && normalizedStatus !== "all") {
