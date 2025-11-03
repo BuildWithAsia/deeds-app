@@ -51,7 +51,8 @@
       "submitting": "Nou ap soumèt aksyon ou…",
       "saveError": "Nou pa t kapab anrejistre aksyon ou kounye a.",
       "success": "Aksyon ou te soumèt epi li ap tann verifikasyon.",
-      "networkError": "Nou pa t kapab kontakte sèvè a. Tanpri tcheke koneksyon ou epi eseye ankò."
+      "networkError": "Nou pa t kapab kontakte sèvè a. Tanpri tcheke koneksyon ou epi eseye ankò.",
+      "templateApplied": "Nou pre ranpli aksyon ou te chwazi a. Ajiste detay yo anvan ou soumèt."
     }
   },
   "leaderboard": {
@@ -116,7 +117,14 @@
     "heroEyebrow": "Planifye pwochen enpak ou",
     "heroTitle": "Chwazi yon aksyon ki antre nan orè ou",
     "heroButton": "Ou deja ede? Note li kounye a",
-    "heroDescription": "Gade opsyon patnè kominotè nou yo prepare pou ou. Chak aksyon montre konbyen tan li pran ak ki moun w ap sipòte."
+    "heroDescription": "Gade opsyon patnè kominotè nou yo prepare pou ou. Chak aksyon montre konbyen tan li pran ak ki moun w ap sipòte.",
+    "selectionHint": "Chwazi youn nan opsyon sa yo pou n pre ranpli fòm soumèt ou a.",
+    "selectionButton": "Chwazi aksyon sa a",
+    "selectionSaved": "Bon chwa! Nou pral pre ranpli {{title}} sou fòm soumèt ou.",
+    "selectionRedirect": "Nou pral louvri fòm soumèt la…",
+    "selectionError": "Nou pa t ka sove aksyon sa a. Tanpri eseye ankò.",
+    "selectionExisting": "Tout pare! {{title}} deja sove pou soumèt ou.",
+    "selectionFallbackTitle": "aksyon sa a"
   },
   "auth": {
     "loginTitle": "Byen retounen",
