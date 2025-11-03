@@ -93,22 +93,13 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      const newCredits = Number.isFinite(Number(data.new_credits))
-        ? Number(data.new_credits)
-        : null;
-
-      if (newCredits !== null) {
-        profile.credits = newCredits;
-        localStorage.setItem("deeds.profile", JSON.stringify(profile));
-      }
-
       form.reset();
       updateFeedback(
-        newCredits !== null
-          ? `Your deed was submitted! Your credits total is now ${newCredits}.`
-          : "Your deed was submitted. We'll verify it shortly!",
+        "Your deed was submitted and is waiting for verification.",
         "success",
       );
+
+      window.dispatchEvent(new CustomEvent("deeds:submitted"));
     } catch (error) {
       console.error("Failed to submit deed", error);
       updateFeedback(

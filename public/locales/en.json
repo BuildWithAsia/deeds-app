@@ -1,0 +1,146 @@
+{
+  "common": {
+    "appName": "Deeds"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "choose": "Choose deed",
+    "submit": "Submit deed",
+    "leaderboard": "Leaderboard",
+    "profile": "Profile",
+    "verify": "Verify queue",
+    "logout": "Log out"
+  },
+  "language": {
+    "englishLabel": "Switch to English",
+    "creoleLabel": "Switch to Haitian Creole"
+  },
+  "dashboard": {
+    "heroEyebrow": "Welcome back",
+    "heroTitleSuffix": ", here's how you can make an impact today",
+    "heroDescription": "Pick one action, log it, and share it with your neighbors. Together we build a kinder block."
+  },
+  "submit": {
+    "heroEyebrow": "Celebrate your impact",
+    "heroTitle": "Submit a deed to keep your streak going",
+    "heroDescription": "Share what you completed, who benefited, and any partners who joined you. Your story appears in the community feed once approved.",
+    "heroPrompt": "Need inspiration?",
+    "heroCta": "Browse deeds",
+    "form": {
+      "titleLabel": "Deed title",
+      "titlePlaceholder": "Delivered groceries to Mrs. Ortiz",
+      "titleHelp": "Keep it short and celebratory so your neighbors can cheer you on.",
+      "categoryLabel": "Category",
+      "categoryPlaceholder": "Choose a category",
+      "categoryHelp": "This helps us highlight different impact areas on the leaderboard.",
+      "descriptionLabel": "What happened?",
+      "descriptionPlaceholder": "Share the story, who participated, and who benefited.",
+      "descriptionHelp": "Add context so our block captain can quickly verify the deed.",
+      "proofLabel": "Proof URL",
+      "proofPlaceholder": "https://photos.app.goo.gl/example",
+      "proofHelp": "Share a link to photos, receipts, or a short write-up that proves the deed happened.",
+      "verificationHint": "That's it! Once your deed is verified you'll see credits added to your account.",
+      "backLink": "Back to dashboard",
+      "submitButton": "Submit deed"
+    }
+  },
+  "leaderboard": {
+    "heroEyebrow": "Friendly competition",
+    "heroTitle": "Neighborhood leaderboard",
+    "heroDescription": "Track the top contributors this week and cheer on your block. Rankings reset every Monday at 9 am.",
+    "weekLabel": "This week so far",
+    "updatedPlaceholder": "Updated moments ago",
+    "tableTitle": "Top neighbors",
+    "rank": "Rank",
+    "neighbor": "Neighbor",
+    "credits": "Credits",
+    "anonymous": "Neighbor",
+    "deedLabelSingular": "deed",
+    "deedLabelPlural": "deeds",
+    "verifiedMeta": "{{count}} {{label}} verified",
+    "empty": "No neighbors on the leaderboard yet. Complete a deed to claim the top spot!",
+    "error": "We couldn't load the leaderboard right now. Please try again later.",
+    "totalCount": "{{count}} verified deeds",
+    "updatedAt": "Updated {{time}}"
+  },
+  "badges": {
+    "sectionTitle": "Verification status",
+    "sectionDescription": "See what still needs review and what is already verified.",
+    "pendingLabel": "Pending",
+    "verifiedLabel": "Verified",
+    "latestLabel": "Last verified",
+    "profileTitle": "Status badges",
+    "profileDescription": "Celebrate what you've completed and what still needs review.",
+    "pending": {
+      "title": "Pending review",
+      "description": "{{count}} deed(s) are waiting for a quick look."
+    },
+    "firstVerified": {
+      "title": "Verified neighbor",
+      "description": "You've unlocked credits with your first verified deed."
+    },
+    "communityBuilder": {
+      "title": "Community builder",
+      "description": "{{count}} deeds verified—your impact keeps growing."
+    },
+    "blockCaptain": {
+      "title": "Block captain",
+      "description": "10+ verified deeds puts you in the neighborhood hall of fame."
+    },
+    "none": "Complete a deed to unlock your first badge.",
+    "latestPlaceholder": "No verified deeds yet"
+  },
+  "profile": {
+    "memberLabel": "Member profile",
+    "memberSince": "Member since",
+    "deedsLogged": "Deeds logged"
+  },
+  "choose": {
+    "heroEyebrow": "Plan your next impact",
+    "heroTitle": "Choose a deed that fits your schedule",
+    "heroButton": "Already helped? Log it now",
+    "heroDescription": "Browse curated opportunities from trusted community partners. Each option includes the estimated time commitment and the neighbor you will support."
+  },
+  "auth": {
+    "loginTitle": "Welcome back",
+    "loginSubtitle": "Log in to pick your next good deed.",
+    "signupTitle": "Create your Deeds account",
+    "signupSubtitle": "Join your neighbors and start earning credit for good deeds.",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "passwordCreatePlaceholder": "Create a password",
+    "nameLabel": "Full name",
+    "namePlaceholder": "Alex Neighbor",
+    "forgot": "Forgot your password?",
+    "createAccount": "Create an account",
+    "loginButton": "Log in",
+    "signupButton": "Create account",
+    "alreadyHaveAccount": "Already have an account?",
+    "loginLink": "Log in"
+  },
+  "verify": {
+    "queueLabel": "Pending queue",
+    "heroEyebrow": "Verification queue",
+    "heroTitle": "Review pending deeds",
+    "heroSubtitle": "Confirm proof links, then approve each deed to award credits instantly.",
+    "refreshButton": "Refresh",
+    "loading": "Loading queue…",
+    "empty": "You're all caught up! New deeds will appear here as they arrive.",
+    "openProof": "Open proof",
+    "verifyButton": "Verify",
+    "loadError": "Unable to load pending deeds (status {{status}}).",
+    "flashLoaded": "Pending deeds loaded.",
+    "flashEmpty": "No pending deeds at the moment.",
+    "flashError": "We couldn't load the pending queue. Please try again shortly.",
+    "flashSuccess": "Deed verified and credits awarded.",
+    "verifyError": "Verification failed. Please retry.",
+    "table": {
+      "deed": "Deed",
+      "submitted": "Submitted",
+      "proof": "Proof",
+      "action": "Action"
+    }
+  }
+}

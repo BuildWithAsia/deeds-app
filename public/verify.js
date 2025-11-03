@@ -1,3 +1,15 @@
+const translateFn =
+  (typeof window !== "undefined" && window.deedsTranslate) || (() => null);
+
+function t(key, fallback, vars) {
+  try {
+    const value = translateFn ? translateFn(key, vars) : null;
+    return value || fallback;
+  } catch (error) {
+    return fallback;
+  }
+}
+
 const toneClassMap = {
   success: "text-teal-700",
   error: "text-rose-600",
@@ -154,7 +166,7 @@ function renderQueue(items) {
       link.rel = "noopener noreferrer";
       link.className =
         "inline-flex items-center gap-1 text-teal-700 hover:text-teal-800";
-      link.textContent = "Open proof";
+      link.textContent = t("verify.openProof", "Open proof");
       proofCell.appendChild(link);
     } else {
       proofCell.textContent = "No link provided";
@@ -167,7 +179,7 @@ function renderQueue(items) {
     button.type = "button";
     button.className =
       "inline-flex items-center justify-center rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600";
-    button.textContent = "Verify";
+    button.textContent = t("verify.verifyButton", "Verify");
     button.addEventListener("click", () => verifyDeed(item?.id, button));
     actionCell.appendChild(button);
 
@@ -201,7 +213,11 @@ async function fetchQueue() {
     });
 
     if (!response.ok) {
-      const message = `Unable to load pending deeds (status ${response.status}).`;
+      const message = t(
+        "verify.loadError",
+        `Unable to load pending deeds (status ${response.status}).`,
+        { status: response.status },
+      );
       setFlash(message, "error");
       return;
     }
@@ -210,14 +226,20 @@ async function fetchQueue() {
     const items = Array.isArray(data) ? data : [];
     renderQueue(items);
     if (items.length === 0) {
-      setFlash("No pending deeds at the moment.", "info");
+      setFlash(
+        t("verify.flashEmpty", "No pending deeds at the moment."),
+        "info",
+      );
     } else {
-      setFlash("Pending deeds loaded.", "success");
+      setFlash(t("verify.flashLoaded", "Pending deeds loaded."), "success");
     }
   } catch (error) {
     console.error("Failed to load pending deeds", error);
     setFlash(
-      "We couldn't load the pending queue. Please try again shortly.",
+      t(
+        "verify.flashError",
+        "We couldn't load the pending queue. Please try again shortly.",
+      ),
       "error",
     );
     if (summary) {
@@ -268,11 +290,18 @@ async function verifyDeed(deedId, button) {
       throw new Error(message);
     }
 
-    setFlash("Deed verified and credits awarded.", "success");
+    setFlash(
+      t("verify.flashSuccess", "Deed verified and credits awarded."),
+      "success",
+    );
     await fetchQueue();
   } catch (error) {
     console.error("Verify deed failed", error);
-    setFlash(error?.message || "Verification failed. Please retry.", "error");
+    setFlash(
+      error?.message ||
+        t("verify.verifyError", "Verification failed. Please retry."),
+      "error",
+    );
   } finally {
     if (button.isConnected) {
       button.disabled = false;

@@ -514,30 +514,18 @@ async function handleCreateDeed(request, env) {
         status,
         credits,
         created_at
-      ) VALUES (?1, ?2, ?3, ?4, ?5, 'pending', 1, datetime('now'))`,
+      ) VALUES (?1, ?2, ?3, ?4, ?5, 'pending', 0, datetime('now'))`,
     );
 
     const result = await insertStmt
       .bind(userId, title, description || null, category, normalizedProofUrl)
       .run();
 
-    await db
-      .prepare("UPDATE users SET credits = credits + 1 WHERE id = ?1")
-      .bind(userId)
-      .run();
-
-    const updatedUser = await db
-      .prepare("SELECT credits FROM users WHERE id = ?1")
-      .bind(userId)
-      .first();
-
-    const newCredits = Number(updatedUser?.credits ?? 0);
-
     return Response.json(
       {
         success: true,
         deed_id: result.meta.last_row_id,
-        new_credits: newCredits,
+        status: "pending",
       },
       { status: 201 },
     );
@@ -596,7 +584,7 @@ async function handleVerifyDeed(request, env) {
     }
 
     const deed = await env.DEEDS_DB.prepare(
-      "SELECT user_id, credits FROM deeds WHERE id = ?1",
+      "SELECT user_id, credits, status FROM deeds WHERE id = ?1",
     )
       .bind(deedId)
       .first();
@@ -605,8 +593,12 @@ async function handleVerifyDeed(request, env) {
       return responseWithMessage("We couldn't find that deed.", 404);
     }
 
+    if (String(deed.status).toLowerCase() === "verified") {
+      return responseWithMessage("This deed is already verified.", 409);
+    }
+
     const updateResult = await env.DEEDS_DB.prepare(
-      "UPDATE deeds SET status = 'verified', credits = CASE WHEN credits > 0 THEN credits ELSE 1 END WHERE id = ?1",
+      "UPDATE deeds SET status = 'verified', credits = CASE WHEN credits > 0 THEN credits ELSE 1 END, verified_at = COALESCE(verified_at, datetime('now')) WHERE id = ?1",
     )
       .bind(deedId)
       .run();
@@ -773,13 +765,47 @@ export default {
 
       try {
         const requestedStatus = url.searchParams.get("status");
+        const requestedUserId = url.searchParams.get("user_id");
         const params = [];
         const conditions = [];
 
         let normalizedStatus = (requestedStatus || "").trim().toLowerCase();
+        let userFilter = null;
+
+        if (requestedUserId != null) {
+          const parsedUserId = Number(requestedUserId);
+          if (!Number.isInteger(parsedUserId) || parsedUserId <= 0) {
+            const response = responseWithMessage(
+              "A valid user_id filter must be provided.",
+              400,
+            );
+            response.headers.set("Access-Control-Allow-Origin", "*");
+            return response;
+          }
+
+          const authHeader = request.headers.get("authorization") || "";
+          const tokenMatch = authHeader.match(/^Bearer\s+(.+)$/i);
+          const token = tokenMatch ? tokenMatch[1].trim() : "";
+          const sessionSecret = resolveSessionSecret(env);
+          const session = await verifySessionToken(token, sessionSecret);
+
+          if (
+            !session ||
+            (!session.isAdmin && session.userId !== parsedUserId)
+          ) {
+            const response = responseWithMessage(
+              "You are not allowed to view these deeds.",
+              403,
+            );
+            response.headers.set("Access-Control-Allow-Origin", "*");
+            return response;
+          }
+
+          userFilter = parsedUserId;
+        }
 
         if (!normalizedStatus) {
-          normalizedStatus = "verified";
+          normalizedStatus = userFilter != null ? "all" : "verified";
         }
 
         if (normalizedStatus && normalizedStatus !== "all") {
@@ -797,8 +823,13 @@ export default {
           params.push(normalizedStatus);
         }
 
+        if (userFilter != null) {
+          conditions.push("user_id = ?");
+          params.push(userFilter);
+        }
+
         let query = `
-      SELECT id, user_id, title, description, category, proof_url, status, credits, created_at
+      SELECT id, user_id, title, description, category, proof_url, status, credits, created_at, verified_at
       FROM deeds
     `;
 

@@ -1,3 +1,4 @@
 [2025-10-26] Implemented deed submission endpoint, verification credit updates, simplified submit form, and auto-refreshing leaderboard.
 [2025-10-27] Extended deed submission schema, finished /api/deeds handler, and wired submit form with richer fields.
 [2025-10-28] Simplified deeds schema with credits column, updated submit flow, and adjusted verification logic.
+[2025-10-29] Wired frontend to deeds API, delayed credits until verification, added verification badges, leaderboard stats, and bilingual localization.
