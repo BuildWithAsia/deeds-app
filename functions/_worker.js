@@ -789,118 +789,65 @@ export default {
       return response;
     }
 
-    if (url.pathname === "/api/deeds" && request.method === "GET") {
-      if (!env.DEEDS_DB) {
-        const response = responseWithMessage(
-          "Database binding missing. Configure DEEDS_DB.",
-          500,
-        );
-        response.headers.set("Access-Control-Allow-Origin", "*");
-        return response;
-      }
+    //deeds start
 
-      try {
-        const requestedStatus = url.searchParams.get("status");
-        const requestedUserId = url.searchParams.get("user_id");
-        const params = [];
-        const conditions = [];
+if (url.pathname === "/api/deeds" && request.method === "GET") {
+  if (!env.DEEDS_DB) {
+    const response = responseWithMessage("Database binding missing. Configure DEEDS_DB.", 500);
+    response.headers.set("Access-Control-Allow-Origin", "*");
+    return response;
+  }
 
-        let normalizedStatus = (requestedStatus || "").trim().toLowerCase();
-        let userFilter = null;
+  try {
+    const statusParam = (url.searchParams.get("status") || "").trim().toLowerCase();
+    const userIdParam = url.searchParams.get("user_id");
+    const params = [];
+    const conditions = [];
 
-        const authHeader = request.headers.get("authorization") || "";
-        const tokenMatch = authHeader.match(/^Bearer\s+(.+)$/i);
-        const token = tokenMatch ? tokenMatch[1].trim() : "";
-        let session = null;
-
-        if (token) {
-          const sessionSecret = resolveSessionSecret(env);
-          session = await verifySessionToken(token, sessionSecret);
-        }
-
-        if (requestedUserId != null) {
-          const parsedUserId = Number(requestedUserId);
-          if (!Number.isInteger(parsedUserId) || parsedUserId <= 0) {
-            const response = responseWithMessage(
-              "A valid user_id filter must be provided.",
-              400,
-            );
-            response.headers.set("Access-Control-Allow-Origin", "*");
-            return response;
-          }
-
-          if (
-            !session ||
-            (!session.isAdmin && session.userId !== parsedUserId)
-          ) {
-            const response = responseWithMessage(
-              "You are not allowed to view these deeds.",
-              403,
-            );
-            response.headers.set("Access-Control-Allow-Origin", "*");
-            return response;
-          }
-
-          userFilter = parsedUserId;
-        }
-
-        if (!normalizedStatus) {
-          if (userFilter != null || (session && session.isAdmin)) {
-            normalizedStatus = "all";
-          } else {
-            normalizedStatus = "verified";
-          }
-        }
-
-        if (normalizedStatus && normalizedStatus !== "all") {
-          const allowedStatuses = new Set(["pending", "verified"]);
-          if (!allowedStatuses.has(normalizedStatus)) {
-            const response = responseWithMessage(
-              "Invalid status filter provided.",
-              400,
-            );
-            response.headers.set("Access-Control-Allow-Origin", "*");
-            return response;
-          }
-
-          conditions.push("status = ?");
-          params.push(normalizedStatus);
-        }
-
-        if (userFilter != null) {
-          conditions.push("user_id = ?");
-          params.push(userFilter);
-        }
-
-        let query = `
-      SELECT id, user_id, title, description, category, proof_url, status, credits, created_at, verified_at
+    // Build base query
+    let query = `
+      SELECT 
+        id, user_id, title, description, category, proof_url, status, credits, reward, created_at, verified_at
       FROM deeds
     `;
 
-        if (conditions.length > 0) {
-          query += ` WHERE ${conditions.join(" AND ")}`;
-        }
+    // Optional filtering
+    if (statusParam && statusParam !== "all") {
+      conditions.push("status = ?");
+      params.push(statusParam);
+    }
 
-        query += " ORDER BY datetime(created_at) DESC, id DESC";
-
-        const { results } = await env.DEEDS_DB.prepare(`${query};`)
-          .bind(...params)
-          .all();
-
-        const response = Response.json(results);
-        response.headers.set("Access-Control-Allow-Origin", "*");
-        return response;
-      } catch (error) {
-        console.error("Failed to load deeds", error);
-        const response = responseWithMessage(
-          "Unable to load deeds list at this time.",
-          500,
-        );
-        response.headers.set("Access-Control-Allow-Origin", "*");
-        return response;
+    if (userIdParam) {
+      const parsed = Number(userIdParam);
+      if (Number.isInteger(parsed) && parsed > 0) {
+        conditions.push("user_id = ?");
+        params.push(parsed);
       }
     }
 
+    if (conditions.length > 0) {
+      query += " WHERE " + conditions.join(" AND ");
+    }
+
+    query += " ORDER BY datetime(created_at) DESC, id DESC";
+
+    const { results } = await env.DEEDS_DB.prepare(query).bind(...params).all();
+
+    const response = Response.json(results || []);
+    response.headers.set("Access-Control-Allow-Origin", "*");
+    return response;
+  } catch (error) {
+    console.error("Failed to load deeds", error.message || error);
+    const response = responseWithMessage("Error fetching deeds.", 500, { error: error.message });
+    response.headers.set("Access-Control-Allow-Origin", "*");
+    return response;
+  }
+}
+
+
+
+    //deeds get end 
+    
     if (url.pathname === "/api/deeds" && request.method === "POST") {
       const response = await handleCreateDeed(request, env);
       response.headers.set("Access-Control-Allow-Origin", "*");
