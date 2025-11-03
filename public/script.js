@@ -63,8 +63,21 @@ function translate(key, vars = {}) {
   });
 }
 
+function translateWithFallback(key, fallback = "", vars = {}) {
+  try {
+    const result = translate(key, vars);
+    if (typeof result === "string" && result.length > 0) {
+      return result;
+    }
+  } catch (error) {
+    console.warn("Translation fallback triggered", error);
+  }
+  return fallback ?? "";
+}
+
 if (typeof window !== "undefined") {
   window.deedsTranslate = translate;
+  window.deedsTranslateWithFallback = translateWithFallback;
 }
 
 function applyTranslations() {
@@ -133,6 +146,13 @@ async function setLanguage(language) {
 
   applyTranslations();
   updateLanguageToggle(normalized);
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(
+      new CustomEvent("deeds:languagechange", {
+        detail: { language: normalized },
+      }),
+    );
+  }
   return normalized;
 }
 
