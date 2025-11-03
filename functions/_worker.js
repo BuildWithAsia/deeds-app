@@ -979,6 +979,44 @@ export default {
       }
     }
 
+// insert 
+    if (url.pathname === "/api/profile" && request.method === "GET") {
+  const userId = Number(url.searchParams.get("user_id"));
+  if (!userId || userId <= 0) {
+    const response = Response.json({ message: "Missing or invalid user_id" }, { status: 400 });
+    response.headers.set("Access-Control-Allow-Origin", "*");
+    return response;
+  }
+
+  const { results } = await env.DEEDS_DB.prepare(`
+    SELECT 
+      u.id, 
+      u.name, 
+      u.email, 
+      u.credits,
+      COUNT(d.id) AS total_deeds,
+      COUNT(CASE WHEN d.status = 'verified' THEN 1 END) AS verified_deeds
+    FROM users u
+    LEFT JOIN deeds d ON u.id = d.user_id
+    WHERE u.id = ?
+    GROUP BY u.id;
+  `).bind(userId).all();
+
+  const profile = results[0] || null;
+
+  const response = Response.json(profile || { message: "User not found" });
+  response.headers.set("Access-Control-Allow-Origin", "*");
+  return response;
+}
+// end
+
+
+
+
+
+
+    
+
     if (env.ASSETS) {
       let assetRequest = request;
 
