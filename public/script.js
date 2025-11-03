@@ -224,7 +224,15 @@ function saveProfile(profile) {
     clearProfile();
     return null;
   }
-  localStorage.setItem("deeds.profile", JSON.stringify(normalized));
+  if (typeof localStorage === "undefined") {
+    setSessionProfile(normalized);
+    return normalized;
+  }
+  try {
+    localStorage.setItem("deeds.profile", JSON.stringify(normalized));
+  } catch (error) {
+    console.warn("Unable to persist profile", error);
+  }
   setSessionProfile(normalized);
   return normalized;
 }
@@ -484,7 +492,16 @@ async function refreshDeedStatus(profile) {
     latestDeedSummary = summary;
     updateStatusCounters(summary);
     renderStatusBadges(summary);
-    hydrateDashboard(profile);
+
+    const updatedProfile = {
+      ...profile,
+      credits: summary.verifiedCount,
+      completed: summary.verifiedCount,
+      timestamp: Date.now(),
+    };
+
+    const normalizedProfile = saveProfile(updatedProfile);
+    hydrateDashboard(normalizedProfile || updatedProfile);
   } catch (error) {
     console.error("Unable to refresh deed status", error);
     updateStatusCounters(null);

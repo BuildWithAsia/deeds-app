@@ -290,10 +290,26 @@ async function verifyDeed(deedId, button) {
       throw new Error(message);
     }
 
-    setFlash(
-      t("verify.flashSuccess", "Deed verified and credits awarded."),
-      "success",
-    );
+    let successMessage =
+      t("verify.flashSuccess", "Deed verified and credits awarded.") ||
+      "Deed verified and credits awarded.";
+
+    if (result?.profile) {
+      const fallbackName =
+        result.profile.id != null ? `Member #${result.profile.id}` : "Member";
+      const displayName = result.profile.name?.trim() || fallbackName;
+      const totalCredits = Number(result.profile.credits ?? 0);
+      const creditLabel = totalCredits === 1 ? "credit" : "credits";
+      successMessage = `${displayName} now has ${totalCredits} ${creditLabel}.`;
+    } else if (result?.creditsAwarded === 0) {
+      successMessage =
+        t(
+          "verify.flashNoCredit",
+          "Deed marked verified without awarding additional credits.",
+        ) || "Deed marked verified without awarding additional credits.";
+    }
+
+    setFlash(successMessage, "success");
     await fetchQueue();
   } catch (error) {
     console.error("Verify deed failed", error);
