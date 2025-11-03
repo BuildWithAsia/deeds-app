@@ -2,9 +2,9 @@ name = "deeds-app"
 main = "functions/_worker.js"
 compatibility_date = "2023-10-23"
 
-[site]
-bucket = "./public"          # folder with index.html, choose.html, etc.
-include = ["**/*"]
+[assets]
+binding = "ASSETS"
+directory = "./public"
 
 
 [[d1_databases]]
@@ -21,4 +21,3 @@ enabled = true
 head_sampling_rate = 1
 persist = true
 invocation_logs = true
-
