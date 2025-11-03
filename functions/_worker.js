@@ -805,7 +805,7 @@ export default {
         }
 
         if (!normalizedStatus) {
-          normalizedStatus = userFilter != null ? "all" : "verified";
+          normalizedStatus = "all";
         }
 
         if (normalizedStatus && normalizedStatus !== "all") {
