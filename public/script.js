@@ -175,6 +175,18 @@ const badgeToneClasses = {
   info: "border-slate-200 bg-slate-50 text-slate-700",
 };
 
+const statusChipToneClasses = {
+  pending: "border-amber-200 bg-amber-50 text-amber-700",
+  verified: "border-teal-200 bg-teal-50 text-teal-700",
+  muted: "border-slate-200 bg-slate-50 text-slate-600",
+};
+
+const statusChipDotClasses = {
+  pending: "bg-amber-400",
+  verified: "bg-teal-500",
+  muted: "bg-slate-400",
+};
+
 let latestDeedSummary = null;
 
 let sessionProfile = null;
@@ -377,15 +389,43 @@ function buildBadgeDescriptors(summary) {
 }
 
 function renderStatusBadges(summary) {
+  const pendingCount = summary?.pendingCount ?? 0;
+  const verifiedCount = summary?.verifiedCount ?? 0;
+
   document
     .querySelectorAll('[data-role="status-badges"]')
     .forEach((container) => {
       container.innerHTML = "";
 
+      const statusOverview = document.createElement("div");
+      statusOverview.className = "sm:col-span-2";
+
+      const chipRow = document.createElement("div");
+      chipRow.className = "flex flex-wrap items-center gap-2";
+
+      const pendingChip = createStatusChip(
+        "badges.pendingLabel",
+        "Pending",
+        pendingCount,
+        pendingCount > 0 ? "pending" : "muted",
+      );
+
+      const verifiedChip = createStatusChip(
+        "badges.verifiedLabel",
+        "Verified",
+        verifiedCount,
+        verifiedCount > 0 ? "verified" : "muted",
+      );
+
+      chipRow.appendChild(pendingChip);
+      chipRow.appendChild(verifiedChip);
+      statusOverview.appendChild(chipRow);
+      container.appendChild(statusOverview);
+
       const descriptors = buildBadgeDescriptors(summary);
       if (!descriptors.length) {
         const empty = document.createElement("p");
-        empty.className = "text-sm text-slate-500";
+        empty.className = "text-sm text-slate-500 sm:col-span-2";
         empty.textContent =
           translate("badges.none") ||
           "Complete a deed to unlock your first badge.";
@@ -415,6 +455,36 @@ function renderStatusBadges(summary) {
         container.appendChild(badge);
       });
     });
+}
+
+function createStatusChip(labelKey, fallback, count, tone) {
+  const label = translate(labelKey, { count }) || fallback;
+  const resolvedTone = tone && statusChipToneClasses[tone] ? tone : "muted";
+
+  const chip = document.createElement("span");
+  chip.className = `inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold ${
+    statusChipToneClasses[resolvedTone]
+  }`;
+
+  const indicator = document.createElement("span");
+  indicator.className = `h-2 w-2 rounded-full ${
+    statusChipDotClasses[resolvedTone] || statusChipDotClasses.muted
+  }`;
+  indicator.setAttribute("aria-hidden", "true");
+
+  const labelSpan = document.createElement("span");
+  labelSpan.textContent = label;
+
+  const countBadge = document.createElement("span");
+  countBadge.className =
+    "rounded bg-white/60 px-1.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-current";
+  countBadge.textContent = String(count ?? 0);
+
+  chip.appendChild(indicator);
+  chip.appendChild(labelSpan);
+  chip.appendChild(countBadge);
+
+  return chip;
 }
 
 function updateStatusCounters(summary) {

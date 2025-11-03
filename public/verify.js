@@ -16,6 +16,18 @@ const toneClassMap = {
   info: "text-slate-600",
 };
 
+const statusToneClasses = {
+  pending: "border-amber-200 bg-amber-50 text-amber-700",
+  verified: "border-teal-200 bg-teal-50 text-teal-700",
+  muted: "border-slate-200 bg-slate-50 text-slate-600",
+};
+
+const statusDotClasses = {
+  pending: "bg-amber-400",
+  verified: "bg-teal-500",
+  muted: "bg-slate-400",
+};
+
 function normalizeProfile(rawProfile) {
   if (!rawProfile || typeof rawProfile !== "object") {
     return null;
@@ -111,7 +123,6 @@ function renderQueue(items) {
   const tbody = document.querySelector('[data-role="queue"]');
   const loading = document.querySelector('[data-role="loading"]');
   const emptyState = document.querySelector('[data-role="empty"]');
-  const summary = document.querySelector('[data-role="summary"]');
 
   if (!tbody || !table || !loading || !emptyState) {
     return;
@@ -123,16 +134,17 @@ function renderQueue(items) {
     table.hidden = true;
     emptyState.hidden = false;
     loading.hidden = true;
-    if (summary) {
-      summary.textContent = "0 deeds awaiting review";
-    }
+    updateSummaryBadges({ pendingCount: 0, verifiedCount: 0 });
     return;
   }
 
-  const total = items.length;
-  if (summary) {
-    summary.textContent = `${total} pending ${total === 1 ? "deed" : "deeds"}`;
-  }
+  const verifiedItems = items.filter((item) => item?.status === "verified");
+  const pendingItems = items.filter((item) => item?.status !== "verified");
+
+  updateSummaryBadges({
+    pendingCount: pendingItems.length,
+    verifiedCount: verifiedItems.length,
+  });
 
   emptyState.hidden = true;
   loading.hidden = true;
@@ -152,6 +164,20 @@ function renderQueue(items) {
     meta.textContent = `Deed #${item?.id ?? "—"} • Member ${item?.user_id ?? "—"}`;
     deedCell.appendChild(title);
     deedCell.appendChild(meta);
+
+    const badgeTone = item?.status === "verified" ? "verified" : "pending";
+    const badgeLabel =
+      item?.status === "verified"
+        ? t("badges.verifiedLabel", "Verified")
+        : t("badges.pendingLabel", "Pending");
+    const statusBadge = createStatusBadge({
+      label: badgeLabel,
+      tone: badgeTone,
+      extraClasses: ["mt-2"],
+    });
+    statusBadge.dataset.status = item?.status || "pending";
+    statusBadge.setAttribute("aria-label", `${badgeLabel} status`);
+    deedCell.appendChild(statusBadge);
 
     const submittedCell = document.createElement("td");
     submittedCell.className = "px-6 py-4 align-top text-slate-600";
@@ -200,12 +226,11 @@ async function fetchQueue() {
   const loading = document.querySelector('[data-role="loading"]');
   const emptyState = document.querySelector('[data-role="empty"]');
   const table = document.querySelector('[data-role="table"]');
-  const summary = document.querySelector('[data-role="summary"]');
 
   if (loading) loading.hidden = false;
   if (emptyState) emptyState.hidden = true;
   if (table) table.hidden = true;
-  if (summary) summary.textContent = "Loading…";
+  updateSummaryBadges({ isLoading: true });
 
   try {
     const response = await fetch("/api/deeds?status=pending", {
@@ -242,14 +267,101 @@ async function fetchQueue() {
       ),
       "error",
     );
-    if (summary) {
-      summary.textContent = "Queue unavailable";
-    }
+    updateSummaryBadges({ isUnavailable: true });
   } finally {
     if (loading) {
       loading.hidden = true;
     }
   }
+}
+
+function updateSummaryBadges({
+  pendingCount = 0,
+  verifiedCount = 0,
+  isLoading = false,
+  isUnavailable = false,
+} = {}) {
+  const summary = document.querySelector('[data-role="summary"]');
+  if (!summary) {
+    return;
+  }
+
+  summary.innerHTML = "";
+
+  if (isLoading) {
+    const loading = document.createElement("span");
+    loading.className = "text-xs text-slate-500";
+    loading.textContent = t("verify.loading", "Loading queue…");
+    summary.appendChild(loading);
+    return;
+  }
+
+  if (isUnavailable) {
+    const message = document.createElement("span");
+    message.className = "text-xs text-rose-600";
+    message.textContent = t(
+      "verify.flashError",
+      "We couldn't load the pending queue. Please try again shortly.",
+    );
+    summary.appendChild(message);
+    return;
+  }
+
+  const pendingBadge = createStatusBadge({
+    label: t("badges.pendingLabel", "Pending"),
+    count: pendingCount,
+    tone: pendingCount > 0 ? "pending" : "muted",
+  });
+
+  const verifiedBadge = createStatusBadge({
+    label: t("badges.verifiedLabel", "Verified"),
+    count: verifiedCount,
+    tone: verifiedCount > 0 ? "verified" : "muted",
+  });
+
+  summary.appendChild(pendingBadge);
+  summary.appendChild(verifiedBadge);
+}
+
+function createStatusBadge({
+  label,
+  count,
+  tone = "muted",
+  extraClasses = [],
+} = {}) {
+  const resolvedTone = tone && statusToneClasses[tone] ? tone : "muted";
+  const badge = document.createElement("span");
+  badge.className = `inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold ${
+    statusToneClasses[resolvedTone]
+  }`;
+
+  extraClasses.forEach((cls) => {
+    if (cls) {
+      badge.classList.add(cls);
+    }
+  });
+
+  const indicator = document.createElement("span");
+  indicator.className = `h-2 w-2 rounded-full ${
+    statusDotClasses[resolvedTone] || statusDotClasses.muted
+  }`;
+  indicator.setAttribute("aria-hidden", "true");
+
+  const labelSpan = document.createElement("span");
+  labelSpan.textContent = label || "";
+
+  badge.appendChild(indicator);
+  badge.appendChild(labelSpan);
+
+  if (typeof count === "number") {
+    const countBadge = document.createElement("span");
+    countBadge.className =
+      "rounded bg-white/60 px-1.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-current";
+    countBadge.textContent = String(count);
+    badge.appendChild(countBadge);
+  }
+
+  return badge;
 }
 
 async function verifyDeed(deedId, button) {
