@@ -40,6 +40,48 @@ function normalizeUrl(value) {
   }
 }
 
+let cachedSessionSecret = null;
+let sessionSecretWarningIssued = false;
+
+function resolveSessionSecret(env) {
+  const rawSecret = env && "SESSION_SECRET" in env ? env.SESSION_SECRET : "";
+  const normalizedSecret = sanitizeText(rawSecret);
+
+  if (normalizedSecret) {
+    cachedSessionSecret = normalizedSecret;
+    return normalizedSecret;
+  }
+
+  if (cachedSessionSecret) {
+    return cachedSessionSecret;
+  }
+
+  let generatedSecret = "";
+
+  if (crypto && typeof crypto.getRandomValues === "function") {
+    const randomBytes = new Uint8Array(32);
+    crypto.getRandomValues(randomBytes);
+    generatedSecret = Array.from(randomBytes)
+      .map((byte) => byte.toString(16).padStart(2, "0"))
+      .join("");
+  } else if (crypto && typeof crypto.randomUUID === "function") {
+    generatedSecret = crypto.randomUUID().replace(/-/g, "");
+  } else {
+    generatedSecret = "development-session-secret";
+  }
+
+  cachedSessionSecret = generatedSecret;
+
+  if (!sessionSecretWarningIssued) {
+    console.warn(
+      "SESSION_SECRET is not configured. Generated an ephemeral secret for development. Configure SESSION_SECRET to persist sessions.",
+    );
+    sessionSecretWarningIssued = true;
+  }
+
+  return generatedSecret;
+}
+
 function base64UrlEncode(input) {
   const base64 = btoa(input)
     .replace(/\+/g, "-")
@@ -191,17 +233,12 @@ async function handleSignup(request, env) {
     );
   }
 
-  if (!env.SESSION_SECRET) {
-    return responseWithMessage(
-      "Session secret missing. Configure SESSION_SECRET.",
-      500,
-    );
-  }
-
   const payload = await parseJsonBody(request);
   if (!payload) {
     return responseWithMessage("Invalid JSON payload.", 400);
   }
+
+  const sessionSecret = resolveSessionSecret(env);
 
   const name = String(payload.name || "").trim();
   const email = String(payload.email || "")
@@ -262,7 +299,7 @@ async function handleSignup(request, env) {
     const sessionToken = await createSessionToken(
       userId,
       isAdmin,
-      env.SESSION_SECRET,
+      sessionSecret,
     );
 
     const profile = {
@@ -301,13 +338,6 @@ async function handleLogin(request, env) {
     );
   }
 
-  if (!env.SESSION_SECRET) {
-    return responseWithMessage(
-      "Session secret missing. Configure SESSION_SECRET.",
-      500,
-    );
-  }
-
   const payload = await parseJsonBody(request);
   if (!payload) {
     return responseWithMessage("Invalid JSON payload.", 400);
@@ -317,6 +347,8 @@ async function handleLogin(request, env) {
     .trim()
     .toLowerCase();
   const password = String(payload.password || "");
+
+  const sessionSecret = resolveSessionSecret(env);
 
   if (!email || !password) {
     return responseWithMessage("Email and password are required.", 400);
@@ -372,7 +404,7 @@ async function handleLogin(request, env) {
     const sessionToken = await createSessionToken(
       user.id,
       isAdmin,
-      env.SESSION_SECRET,
+      sessionSecret,
     );
 
     const profile = {
@@ -532,18 +564,12 @@ async function handleVerifyDeed(request, env) {
     );
   }
 
-  if (!env.SESSION_SECRET) {
-    return responseWithMessage(
-      "Session secret missing. Configure SESSION_SECRET.",
-      500,
-    );
-  }
-
   const authHeader = request.headers.get("authorization") || "";
   const tokenMatch = authHeader.match(/^Bearer\s+(.+)$/i);
   const token = tokenMatch ? tokenMatch[1].trim() : "";
 
-  const session = await verifySessionToken(token, env.SESSION_SECRET);
+  const sessionSecret = resolveSessionSecret(env);
+  const session = await verifySessionToken(token, sessionSecret);
   if (!session || !session.userId) {
     return responseWithMessage("Invalid or expired session.", 403);
   }
