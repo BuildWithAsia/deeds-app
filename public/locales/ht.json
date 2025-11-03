@@ -1,0 +1,146 @@
+{
+  "common": {
+    "appName": "Deeds"
+  },
+  "nav": {
+    "dashboard": "Tablo prensipal",
+    "choose": "Chwazi yon aksyon",
+    "submit": "Soumèt yon aksyon",
+    "leaderboard": "Tablo onè",
+    "profile": "Pwofil",
+    "verify": "Lis verifikasyon",
+    "logout": "Dekonekte"
+  },
+  "language": {
+    "englishLabel": "Chanje pou Anglè",
+    "creoleLabel": "Chanje pou Kreyòl Ayisyen"
+  },
+  "dashboard": {
+    "heroEyebrow": "Byen retounen",
+    "heroTitleSuffix": ", men fason ou ka pote enpak jodi a",
+    "heroDescription": "Chwazi yon aksyon, note li, epi pataje ak vwazen yo. Ansanm n ap fè katye a vin pi cho."
+  },
+  "submit": {
+    "heroEyebrow": "Selebre enpak ou",
+    "heroTitle": "Soumèt yon aksyon pou kenbe seri ou",
+    "heroDescription": "Rakonte sa ou fè, moun ki benefisye yo, ak tout patnè ki ede w. Istwa ou ap parèt sou tablo kominote a apre verifikasyon.",
+    "heroPrompt": "Bezwen enspirasyon?",
+    "heroCta": "Gade lis aksyon yo",
+    "form": {
+      "titleLabel": "Tit aksyon an",
+      "titlePlaceholder": "Mwen pote pwovizyon pou Manmzèl Ortiz",
+      "titleHelp": "Kenbe li kout epi fè kè kontan pou vwazen yo ka felisite w.",
+      "categoryLabel": "Kategori",
+      "categoryPlaceholder": "Chwazi yon kategori",
+      "categoryHelp": "Sa ede nou mete aksyon yo an valè sou tablo onè a.",
+      "descriptionLabel": "Kisa ki pase?",
+      "descriptionPlaceholder": "Rakonte istwa a, moun ki patisipe yo, ak moun ki benefisye yo.",
+      "descriptionHelp": "Bay detay pou chèf blòk la ka verifye aksyon an rapidman.",
+      "proofLabel": "URL prèv",
+      "proofPlaceholder": "https://photos.app.goo.gl/egzanp",
+      "proofHelp": "Pataje yon lyen ak foto, resi, oswa yon ti rapò ki montre aksyon an fèt vre.",
+      "verificationHint": "Se tout! Lè aksyon an verifye w ap wè kredi yo ajoute sou kont ou.",
+      "backLink": "Retounen sou tablo prensipal",
+      "submitButton": "Soumèt aksyon an"
+    }
+  },
+  "leaderboard": {
+    "heroEyebrow": "Konpetisyon amikal",
+    "heroTitle": "Tablo onè katye a",
+    "heroDescription": "Suiv moun ki pi aktif semèn sa a epi ankouraje blòk ou. Klasman an rekòmanse chak lendi a 9è.",
+    "weekLabel": "Sa nou fè semèn sa a",
+    "updatedPlaceholder": "Mizajou kèk segonn pase",
+    "tableTitle": "Vwazen an tèt",
+    "rank": "Ranj",
+    "neighbor": "Vwazen",
+    "credits": "Kredi",
+    "anonymous": "Vwazen",
+    "deedLabelSingular": "aksyon",
+    "deedLabelPlural": "aksyon",
+    "verifiedMeta": "{{count}} {{label}} verifye",
+    "empty": "Poko gen moun sou tablo a. Fè yon bon aksyon pou pran premye plas la!",
+    "error": "Nou pa rive chaje tablo onè a kounye a. Tanpri eseye ankò pita.",
+    "totalCount": "{{count}} aksyon verifye",
+    "updatedAt": "Mizajou {{time}}"
+  },
+  "badges": {
+    "sectionTitle": "Estati verifikasyon",
+    "sectionDescription": "Wè sa ki rete pou revize ak sa ki deja verifye.",
+    "pendingLabel": "An atant",
+    "verifiedLabel": "Verifye",
+    "latestLabel": "Dènye verifikasyon",
+    "profileTitle": "Badj estati",
+    "profileDescription": "Selebre sa ou deja reyalize epi swiv sa ki sou wout la.",
+    "pending": {
+      "title": "An atant de revizyon",
+      "description": "{{count}} aksyon ap tann yon ti gade rapid."
+    },
+    "firstVerified": {
+      "title": "Vwazen verifye",
+      "description": "Premye aksyon verifye ou pote kredi pou ou."
+    },
+    "communityBuilder": {
+      "title": "Bati kominote",
+      "description": "{{count}} aksyon verifye—enpak ou ap grandi chak jou."
+    },
+    "blockCaptain": {
+      "title": "Chèf blòk",
+      "description": "Plis pase 10 aksyon verifye mete ou nan onè katye a."
+    },
+    "none": "Fè yon aksyon pou jwenn premye badj ou.",
+    "latestPlaceholder": "Poko gen aksyon verifye"
+  },
+  "profile": {
+    "memberLabel": "Pwofil manm",
+    "memberSince": "Manm depi",
+    "deedsLogged": "Aksyon ki anrejistre"
+  },
+  "choose": {
+    "heroEyebrow": "Planifye pwochen enpak ou",
+    "heroTitle": "Chwazi yon aksyon ki antre nan orè ou",
+    "heroButton": "Ou deja ede? Note li kounye a",
+    "heroDescription": "Gade opsyon patnè kominotè nou yo prepare pou ou. Chak aksyon montre konbyen tan li pran ak ki moun w ap sipòte."
+  },
+  "auth": {
+    "loginTitle": "Byen retounen",
+    "loginSubtitle": "Antre pou chwazi pwochen bon aksyon ou.",
+    "signupTitle": "Kreye kont Deeds ou",
+    "signupSubtitle": "Reyini ak vwazen yo epi kòmanse touche kredi pou bon aksyon.",
+    "emailLabel": "Adrès imèl",
+    "emailPlaceholder": "ou@example.com",
+    "passwordLabel": "Modpas",
+    "passwordPlaceholder": "Antre modpas ou",
+    "passwordCreatePlaceholder": "Kreye yon modpas",
+    "nameLabel": "Non konplè",
+    "namePlaceholder": "Alex Vwazen",
+    "forgot": "Bliye modpas ou?",
+    "createAccount": "Kreye yon kont",
+    "loginButton": "Antre",
+    "signupButton": "Kreye kont",
+    "alreadyHaveAccount": "Ou deja gen yon kont?",
+    "loginLink": "Antre"
+  },
+  "verify": {
+    "queueLabel": "Lis verifikasyon",
+    "heroEyebrow": "Lis verifikasyon",
+    "heroTitle": "Revize aksyon ki an atant",
+    "heroSubtitle": "Tcheke lyen prèv yo, epi apwouve chak aksyon pou bay kredi san pèdi tan.",
+    "refreshButton": "Rafrechi",
+    "loading": "Lis la ap chaje…",
+    "empty": "Tout bagay anfòm! Nou pral enfòme w lè nouvo aksyon rive.",
+    "openProof": "Louvri prèv la",
+    "verifyButton": "Verifye",
+    "loadError": "Nou pa t ka chaje lis la (kòd {{status}}).",
+    "flashLoaded": "Lis aksyon an ajou.",
+    "flashEmpty": "Pa gen aksyon an atant kounye a.",
+    "flashError": "Nou pa rive chaje lis verifikasyon an. Tanpri eseye ankò byento.",
+    "flashSuccess": "Aksyon verifye epi kredi yo te ajoute.",
+    "verifyError": "Verifikasyon pa reyisi. Eseye ankò tanpri.",
+    "table": {
+      "deed": "Aksyon",
+      "submitted": "Soumèt",
+      "proof": "Prèv",
+      "action": "Aksyon"
+    }
+  }
+}

@@ -16,6 +16,26 @@
     <main
       class="min-h-screen flex flex-col items-center justify-center px-4 py-10"
     >
+      <div class="mb-4 flex w-full max-w-md justify-end gap-2">
+        <button
+          type="button"
+          class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm transition hover:border-teal-600 hover:text-teal-700"
+          data-lang-switch="en"
+          data-i18n-label="language.englishLabel"
+          aria-label="Switch to English"
+        >
+          EN
+        </button>
+        <button
+          type="button"
+          class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm transition hover:border-teal-600 hover:text-teal-700"
+          data-lang-switch="ht"
+          data-i18n-label="language.creoleLabel"
+          aria-label="Chanje lang pou Kreyòl"
+        >
+          HT
+        </button>
+      </div>
       <div
         class="w-full max-w-md bg-white rounded-2xl shadow-lg shadow-teal-900/10 border border-slate-100"
       >
@@ -26,8 +46,13 @@
               >D</span
             >
           </div>
-          <h1 class="text-3xl font-semibold tracking-tight">Welcome back</h1>
-          <p class="mt-2 text-sm text-slate-600">
+          <h1
+            class="text-3xl font-semibold tracking-tight"
+            data-i18n="auth.loginTitle"
+          >
+            Welcome back
+          </h1>
+          <p class="mt-2 text-sm text-slate-600" data-i18n="auth.loginSubtitle">
             Log in to pick your next good deed.
           </p>
         </div>
@@ -41,6 +66,7 @@
             <label
               class="block text-sm font-medium text-slate-700"
               for="login-email"
+              data-i18n="auth.emailLabel"
               >Email address</label
             >
             <input
@@ -51,12 +77,14 @@
               autocomplete="email"
               class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-base shadow-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
               placeholder="you@example.com"
+              data-i18n-placeholder="auth.emailPlaceholder"
             />
           </div>
           <div class="space-y-1 text-left">
             <label
               class="block text-sm font-medium text-slate-700"
               for="login-password"
+              data-i18n="auth.passwordLabel"
               >Password</label
             >
             <input
@@ -68,13 +96,17 @@
               autocomplete="current-password"
               class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-base shadow-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
               placeholder="Enter your password"
+              data-i18n-placeholder="auth.passwordPlaceholder"
             />
           </div>
           <div class="flex items-center justify-between text-sm">
-            <span class="text-slate-500">Forgot your password?</span>
+            <span class="text-slate-500" data-i18n="auth.forgot"
+              >Forgot your password?</span
+            >
             <a
               href="signup.html"
               class="font-semibold text-teal-700 hover:text-teal-800"
+              data-i18n="auth.createAccount"
               >Create an account</a
             >
           </div>
@@ -86,6 +118,7 @@
           <button
             type="submit"
             class="w-full inline-flex items-center justify-center rounded-lg bg-teal-600 px-4 py-2.5 text-white font-semibold shadow-sm shadow-teal-900/20 transition hover:bg-teal-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
+            data-i18n="auth.loginButton"
           >
             Log in
           </button>

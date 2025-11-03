@@ -26,29 +26,77 @@
           >
             <span
               class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-teal-600 text-white"
+              aria-hidden="true"
               >D</span
             >
-            Deeds
+            <span data-i18n="common.appName">Deeds</span>
           </a>
-          <nav class="flex flex-wrap items-center gap-4 text-sm text-slate-600">
-            <a href="dashboard.html" class="hover:text-teal-700">Dashboard</a>
-            <a href="choose.html" class="hover:text-teal-700">Choose deed</a>
-            <a href="submit.html" class="hover:text-teal-700">Submit deed</a>
+          <nav
+            class="flex flex-wrap items-center gap-4 text-sm text-slate-600"
+            aria-label="Primary navigation"
+          >
+            <a
+              href="dashboard.html"
+              class="hover:text-teal-700"
+              data-i18n="nav.dashboard"
+              >Dashboard</a
+            >
+            <a
+              href="choose.html"
+              class="hover:text-teal-700"
+              data-i18n="nav.choose"
+              >Choose deed</a
+            >
+            <a
+              href="submit.html"
+              class="hover:text-teal-700"
+              data-i18n="nav.submit"
+              >Submit deed</a
+            >
             <a
               href="leaderboard.html"
               class="font-semibold text-teal-700 hover:text-teal-700"
               aria-current="page"
+              data-i18n="nav.leaderboard"
               >Leaderboard</a
             >
-            <a href="profile.html" class="hover:text-teal-700">Profile</a>
+            <a
+              href="profile.html"
+              class="hover:text-teal-700"
+              data-i18n="nav.profile"
+              >Profile</a
+            >
           </nav>
-          <button
-            type="button"
-            class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-teal-600 hover:text-teal-700"
-            data-action="logout"
-          >
-            Log out
-          </button>
+          <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm transition hover:border-teal-600 hover:text-teal-700"
+                data-lang-switch="en"
+                data-i18n-label="language.englishLabel"
+                aria-label="Switch to English"
+              >
+                EN
+              </button>
+              <button
+                type="button"
+                class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm transition hover:border-teal-600 hover:text-teal-700"
+                data-lang-switch="ht"
+                data-i18n-label="language.creoleLabel"
+                aria-label="Chanje lang pou Kreyòl"
+              >
+                HT
+              </button>
+            </div>
+            <button
+              type="button"
+              class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-teal-600 hover:text-teal-700"
+              data-action="logout"
+              data-i18n="nav.logout"
+            >
+              Log out
+            </button>
+          </div>
         </div>
       </header>
 
@@ -58,13 +106,20 @@
             <div>
               <p
                 class="text-sm font-medium uppercase tracking-[0.18em] text-teal-600"
+                data-i18n="leaderboard.heroEyebrow"
               >
                 Friendly competition
               </p>
-              <h1 class="mt-2 text-3xl font-semibold tracking-tight">
+              <h1
+                class="mt-2 text-3xl font-semibold tracking-tight"
+                data-i18n="leaderboard.heroTitle"
+              >
                 Neighborhood leaderboard
               </h1>
-              <p class="mt-3 max-w-2xl text-base text-slate-600">
+              <p
+                class="mt-3 max-w-2xl text-base text-slate-600"
+                data-i18n="leaderboard.heroDescription"
+              >
                 Track the top contributors this week and cheer on your block.
                 Rankings reset every Monday at 9 am.
               </p>
@@ -72,9 +127,22 @@
             <div
               class="rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm"
             >
-              <p class="text-slate-500">This week so far</p>
-              <p class="mt-1 text-3xl font-semibold text-teal-700">138 deeds</p>
-              <p class="text-xs text-slate-500">+24 vs last week</p>
+              <p class="text-slate-500" data-i18n="leaderboard.weekLabel">
+                This week so far
+              </p>
+              <p
+                class="mt-1 text-3xl font-semibold text-teal-700"
+                data-role="leaderboard-total"
+              >
+                0
+              </p>
+              <p
+                class="text-xs text-slate-500"
+                data-role="leaderboard-updated"
+                data-i18n="leaderboard.updatedPlaceholder"
+              >
+                Updated moments ago
+              </p>
             </div>
           </div>
         </section>
@@ -82,7 +150,10 @@
         <section class="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
           <div class="rounded-2xl border border-slate-100 bg-white p-6">
             <div class="flex flex-wrap items-center justify-between gap-4">
-              <h2 class="text-lg font-semibold text-slate-900">
+              <h2
+                class="text-lg font-semibold text-slate-900"
+                data-i18n="leaderboard.tableTitle"
+              >
                 Top neighbors
               </h2>
               <div class="flex items-center gap-2 text-xs">
@@ -107,9 +178,27 @@
                   class="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500"
                 >
                   <tr>
-                    <th scope="col" class="px-4 py-3">Rank</th>
-                    <th scope="col" class="px-4 py-3">Neighbor</th>
-                    <th scope="col" class="px-4 py-3 text-right">Credits</th>
+                    <th
+                      scope="col"
+                      class="px-4 py-3"
+                      data-i18n="leaderboard.rank"
+                    >
+                      Rank
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-4 py-3"
+                      data-i18n="leaderboard.neighbor"
+                    >
+                      Neighbor
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-4 py-3 text-right"
+                      data-i18n="leaderboard.credits"
+                    >
+                      Credits
+                    </th>
                   </tr>
                 </thead>
                 <tbody

@@ -1,6 +1,167 @@
+const SUPPORTED_LANGUAGES = ["en", "ht"];
+const DEFAULT_LANGUAGE = "en";
+const LANGUAGE_STORAGE_KEY = "deeds.lang";
+const translationsCache = new Map();
+let activeLanguage = DEFAULT_LANGUAGE;
+
 function togglePw() {
   const pw = document.getElementById("pw");
+  if (!pw) return;
   pw.type = pw.type === "password" ? "text" : "password";
+}
+
+function resolveTranslationKey(key, translations) {
+  if (!key || !translations) {
+    return null;
+  }
+
+  return key.split(".").reduce((acc, part) => {
+    if (acc && typeof acc === "object" && part in acc) {
+      return acc[part];
+    }
+    return null;
+  }, translations);
+}
+
+async function loadTranslations(language) {
+  if (translationsCache.has(language)) {
+    return translationsCache.get(language);
+  }
+
+  try {
+    const response = await fetch(`/locales/${language}.json`, {
+      headers: { Accept: "application/json" },
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to load ${language} translations`);
+    }
+    const data = await response.json();
+    translationsCache.set(language, data);
+    return data;
+  } catch (error) {
+    console.warn("Translation load failed", error);
+    return null;
+  }
+}
+
+function translate(key, vars = {}) {
+  const translations = translationsCache.get(activeLanguage);
+  const fallbackTranslations = translationsCache.get(DEFAULT_LANGUAGE);
+
+  let template = resolveTranslationKey(key, translations);
+  if (template == null) {
+    template = resolveTranslationKey(key, fallbackTranslations);
+  }
+
+  if (typeof template !== "string") {
+    return null;
+  }
+
+  return template.replace(/{{\s*([^\s}]+)\s*}}/g, (_, token) => {
+    const value = token in vars ? vars[token] : null;
+    return value != null ? String(value) : "";
+  });
+}
+
+if (typeof window !== "undefined") {
+  window.deedsTranslate = translate;
+}
+
+function applyTranslations() {
+  document.querySelectorAll("[data-i18n]").forEach((element) => {
+    const key = element.getAttribute("data-i18n");
+    if (!key) return;
+    const text = translate(key);
+    if (text) {
+      element.textContent = text;
+    }
+  });
+
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((element) => {
+    const key = element.getAttribute("data-i18n-placeholder");
+    if (!key) return;
+    const text = translate(key);
+    if (text) {
+      element.setAttribute("placeholder", text);
+    }
+  });
+
+  document.querySelectorAll("[data-i18n-label]").forEach((element) => {
+    const key = element.getAttribute("data-i18n-label");
+    if (!key) return;
+    const text = translate(key);
+    if (text) {
+      element.setAttribute("aria-label", text);
+    }
+  });
+}
+
+function updateLanguageToggle(language) {
+  document.querySelectorAll("[data-lang-switch]").forEach((button) => {
+    const isActive = button.dataset.langSwitch === language;
+    button.classList.toggle("bg-teal-600", isActive);
+    button.classList.toggle("text-white", isActive);
+    button.classList.toggle("border-teal-600", isActive);
+    button.classList.toggle("text-slate-600", !isActive);
+    button.setAttribute("aria-pressed", isActive ? "true" : "false");
+  });
+}
+
+async function setLanguage(language) {
+  const normalized = SUPPORTED_LANGUAGES.includes(language)
+    ? language
+    : DEFAULT_LANGUAGE;
+  if (activeLanguage === normalized && translationsCache.has(normalized)) {
+    applyTranslations();
+    updateLanguageToggle(normalized);
+    return normalized;
+  }
+
+  const translations = await loadTranslations(normalized);
+  if (!translations) {
+    return activeLanguage;
+  }
+
+  translationsCache.set(normalized, translations);
+  activeLanguage = normalized;
+  document.documentElement.lang = normalized;
+  try {
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, normalized);
+  } catch (error) {
+    console.warn("Unable to persist language preference", error);
+  }
+
+  applyTranslations();
+  updateLanguageToggle(normalized);
+  return normalized;
+}
+
+async function initLocalization() {
+  let preferred = DEFAULT_LANGUAGE;
+  try {
+    const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+    if (stored && SUPPORTED_LANGUAGES.includes(stored)) {
+      preferred = stored;
+    } else {
+      const browserLang = navigator?.language?.slice(0, 2)?.toLowerCase();
+      if (browserLang && SUPPORTED_LANGUAGES.includes(browserLang)) {
+        preferred = browserLang;
+      }
+    }
+  } catch (error) {
+    console.warn("Unable to read language preference", error);
+  }
+
+  await setLanguage(preferred);
+
+  document.querySelectorAll("[data-lang-switch]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const target = button.dataset.langSwitch;
+      if (target) {
+        setLanguage(target);
+      }
+    });
+  });
 }
 
 const toneClassMap = {
@@ -8,6 +169,13 @@ const toneClassMap = {
   error: "text-rose-600",
   info: "text-slate-600",
 };
+
+const badgeToneClasses = {
+  success: "border-teal-200 bg-teal-50 text-teal-800",
+  info: "border-slate-200 bg-slate-50 text-slate-700",
+};
+
+let latestDeedSummary = null;
 
 let sessionProfile = null;
 
@@ -85,6 +253,7 @@ const PROTECTED_PAGES = new Set([
   "dashboard.html",
   "submit.html",
   "leaderboard.html",
+  "profile.html",
   "verify.html",
 ]);
 
@@ -96,27 +265,38 @@ function isProfileExpired(profile) {
 }
 
 function hydrateUI(profile) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
   const page = window.location.pathname.split("/").pop();
-  if (page === "dashboard.html") {
+  if (page === "dashboard.html" || page === "profile.html") {
     hydrateDashboard(profile);
+  }
+  if (profile) {
+    renderStatusBadges(latestDeedSummary);
+    updateStatusCounters(latestDeedSummary);
   }
 }
 
-const currentPage = window.location.pathname.split("/").pop();
+let currentPage = "";
+if (typeof window !== "undefined") {
+  currentPage = window.location.pathname.split("/").pop();
 
-if (PROTECTED_PAGES.has(currentPage)) {
-  const profile = getProfile();
-  if (!profile || isProfileExpired(profile) || !profile?.sessionToken) {
-    clearProfile();
-    window.location.href = "login.html";
-  } else if (currentPage === "verify.html" && !profile.isAdmin) {
-    window.location.href = "dashboard.html";
-  } else {
-    setSessionProfile(profile);
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", () => hydrateUI(profile));
+  if (PROTECTED_PAGES.has(currentPage)) {
+    const profile = getProfile();
+    if (!profile || isProfileExpired(profile) || !profile?.sessionToken) {
+      clearProfile();
+      window.location.href = "login.html";
+    } else if (currentPage === "verify.html" && !profile.isAdmin) {
+      window.location.href = "dashboard.html";
     } else {
-      hydrateUI(profile);
+      setSessionProfile(profile);
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", () => hydrateUI(profile));
+      } else {
+        hydrateUI(profile);
+      }
     }
   }
 }
@@ -130,6 +310,186 @@ function formatDate(value) {
     day: "numeric",
     year: "numeric",
   });
+}
+
+function formatDateTime(value) {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
+
+function buildBadgeDescriptors(summary) {
+  if (!summary) {
+    return [];
+  }
+
+  const descriptors = [];
+
+  if (summary.pendingCount > 0) {
+    descriptors.push({
+      titleKey: "badges.pending.title",
+      descriptionKey: "badges.pending.description",
+      tone: "info",
+      vars: { count: summary.pendingCount },
+    });
+  }
+
+  if (summary.verifiedCount >= 1) {
+    descriptors.push({
+      titleKey: "badges.firstVerified.title",
+      descriptionKey: "badges.firstVerified.description",
+      tone: "success",
+      vars: { count: summary.verifiedCount },
+    });
+  }
+
+  if (summary.verifiedCount >= 5) {
+    descriptors.push({
+      titleKey: "badges.communityBuilder.title",
+      descriptionKey: "badges.communityBuilder.description",
+      tone: "success",
+      vars: { count: summary.verifiedCount },
+    });
+  }
+
+  if (summary.verifiedCount >= 10) {
+    descriptors.push({
+      titleKey: "badges.blockCaptain.title",
+      descriptionKey: "badges.blockCaptain.description",
+      tone: "success",
+      vars: { count: summary.verifiedCount },
+    });
+  }
+
+  return descriptors;
+}
+
+function renderStatusBadges(summary) {
+  document
+    .querySelectorAll('[data-role="status-badges"]')
+    .forEach((container) => {
+      container.innerHTML = "";
+
+      const descriptors = buildBadgeDescriptors(summary);
+      if (!descriptors.length) {
+        const empty = document.createElement("p");
+        empty.className = "text-sm text-slate-500";
+        empty.textContent =
+          translate("badges.none") ||
+          "Complete a deed to unlock your first badge.";
+        container.appendChild(empty);
+        return;
+      }
+
+      descriptors.forEach((descriptor) => {
+        const badge = document.createElement("div");
+        const tone = descriptor.tone && badgeToneClasses[descriptor.tone];
+        badge.className = `rounded-xl border px-4 py-3 text-sm shadow-sm ${
+          tone || "border-slate-200 bg-white text-slate-700"
+        }`;
+
+        const title = document.createElement("p");
+        title.className = "font-semibold text-slate-900";
+        title.textContent =
+          translate(descriptor.titleKey, descriptor.vars) || "Status badge";
+
+        const description = document.createElement("p");
+        description.className = "mt-1 text-xs text-slate-600";
+        description.textContent =
+          translate(descriptor.descriptionKey, descriptor.vars) || "";
+
+        badge.appendChild(title);
+        badge.appendChild(description);
+        container.appendChild(badge);
+      });
+    });
+}
+
+function updateStatusCounters(summary) {
+  const pendingCount = summary?.pendingCount ?? 0;
+  const verifiedCount = summary?.verifiedCount ?? 0;
+  const latestVerified = summary?.latestVerifiedAt ?? null;
+
+  document
+    .querySelectorAll('[data-status-count="pending"]')
+    .forEach((element) => {
+      element.textContent = pendingCount;
+    });
+
+  document
+    .querySelectorAll('[data-status-count="verified"]')
+    .forEach((element) => {
+      element.textContent = verifiedCount;
+    });
+
+  document.querySelectorAll("[data-status-latest]").forEach((element) => {
+    element.textContent = latestVerified
+      ? formatDateTime(latestVerified)
+      : translate("badges.latestPlaceholder") || "—";
+  });
+}
+
+async function refreshDeedStatus(profile) {
+  if (!profile?.id || !profile?.sessionToken) {
+    renderStatusBadges(latestDeedSummary);
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `/api/deeds?user_id=${profile.id}&status=all`,
+      {
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${profile.sessionToken}`,
+        },
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`status ${response.status}`);
+    }
+
+    const data = await response.json();
+    const deeds = Array.isArray(data) ? data : [];
+    const verified = deeds.filter((item) => item?.status === "verified");
+    const pending = deeds.filter((item) => item?.status !== "verified");
+
+    const latestVerifiedRecord = verified.reduce((latest, item) => {
+      const candidate = item?.verified_at || item?.created_at;
+      if (!candidate) {
+        return latest;
+      }
+      const timestamp = new Date(candidate).getTime();
+      if (Number.isNaN(timestamp)) {
+        return latest;
+      }
+      if (!latest || timestamp > latest.timestamp) {
+        return { timestamp, value: candidate };
+      }
+      return latest;
+    }, null);
+
+    const summary = {
+      totalCount: deeds.length,
+      verifiedCount: verified.length,
+      pendingCount: pending.length,
+      latestVerifiedAt: latestVerifiedRecord?.value ?? null,
+    };
+
+    latestDeedSummary = summary;
+    updateStatusCounters(summary);
+    renderStatusBadges(summary);
+    hydrateDashboard(profile);
+  } catch (error) {
+    console.error("Unable to refresh deed status", error);
+    updateStatusCounters(null);
+    renderStatusBadges(null);
+  }
 }
 
 function setMessage(element, message, tone = "info") {
@@ -272,9 +632,15 @@ function hydrateDashboard(profile) {
       profile.createdAt || profile.created,
     );
   }
+
   if (completedTarget) {
+    const summaryCompleted = latestDeedSummary?.verifiedCount;
     const completedValue =
-      profile.completed != null ? profile.completed : profile.credits;
+      summaryCompleted != null
+        ? summaryCompleted
+        : profile.completed != null
+          ? profile.completed
+          : profile.credits;
     if (completedValue != null) {
       completedTarget.textContent = completedValue;
     }
@@ -295,12 +661,20 @@ function attachLogout() {
 
 async function loadLeaderboard() {
   const tbody = document.getElementById("leaderboard-body");
+  const totalElement = document.querySelector(
+    '[data-role="leaderboard-total"]',
+  );
+  const updatedElement = document.querySelector(
+    '[data-role="leaderboard-updated"]',
+  );
   if (!tbody) {
     return;
   }
 
   try {
-    const response = await fetch("/api/leaderboard");
+    const response = await fetch("/api/leaderboard", {
+      headers: { Accept: "application/json" },
+    });
     if (!response.ok) {
       throw new Error(`Request failed with status ${response.status}`);
     }
@@ -309,14 +683,30 @@ async function loadLeaderboard() {
     const entries = Array.isArray(data) ? data : [];
     tbody.innerHTML = "";
 
+    let totalVerified = 0;
+
     entries.forEach((user, index) => {
       const row = document.createElement("tr");
-      const name = user?.name || "—";
+      const name = user?.name || translate("leaderboard.anonymous") || "—";
       const credits = Number(user?.credits ?? 0);
       const deedCount = Number(user?.deedCount ?? 0);
-      const deedLabel = deedCount === 1 ? "deed" : "deeds";
-      const deedMeta = deedCount
-        ? `<div class="mt-0.5 text-xs text-slate-400">${deedCount} ${deedLabel} verified</div>`
+      totalVerified += deedCount;
+
+      const labelKey =
+        deedCount === 1
+          ? "leaderboard.deedLabelSingular"
+          : "leaderboard.deedLabelPlural";
+      const deedLabel =
+        translate(labelKey) || (deedCount === 1 ? "deed" : "deeds");
+      const deedMetaText = deedCount
+        ? translate("leaderboard.verifiedMeta", {
+            count: deedCount,
+            label: deedLabel,
+          }) || `${deedCount} ${deedLabel}`
+        : "";
+
+      const deedMetaHtml = deedMetaText
+        ? `<div class="mt-0.5 text-xs text-slate-400">${deedMetaText}</div>`
         : "";
 
       row.innerHTML = `
@@ -324,42 +714,107 @@ async function loadLeaderboard() {
         <td class="px-4 py-3">${name}</td>
         <td class="px-4 py-3 text-right">
           <div class="text-sm font-semibold text-slate-700">${credits}</div>
-          ${deedMeta}
+          ${deedMetaHtml}
         </td>`;
       tbody.appendChild(row);
     });
 
     if (tbody.children.length === 0) {
       const emptyRow = document.createElement("tr");
+      const emptyMessage =
+        translate("leaderboard.empty") ||
+        "No neighbors on the leaderboard yet. Complete a deed to claim the top spot!";
       emptyRow.innerHTML = `
         <td class="px-4 py-6 text-center text-slate-500" colspan="3">
-          No neighbors on the leaderboard yet. Complete a deed to claim the top spot!
+          ${emptyMessage}
         </td>`;
       tbody.appendChild(emptyRow);
     }
+
+    if (totalElement) {
+      const totalMessage =
+        translate("leaderboard.totalCount", { count: totalVerified }) ||
+        `${totalVerified} verified deeds`;
+      totalElement.textContent = totalMessage;
+    }
+
+    if (updatedElement) {
+      const now = new Date();
+      const formattedTime = new Intl.DateTimeFormat(undefined, {
+        hour: "numeric",
+        minute: "2-digit",
+      }).format(now);
+      updatedElement.textContent =
+        translate("leaderboard.updatedAt", { time: formattedTime }) ||
+        `Updated ${formattedTime}`;
+    }
   } catch (error) {
     console.error("Failed to load leaderboard", error);
+    const errorMessage =
+      translate("leaderboard.error") ||
+      "We couldn't load the leaderboard right now. Please try again later.";
     tbody.innerHTML = `
       <tr>
         <td class="px-4 py-6 text-center text-slate-500" colspan="3">
-          We couldn't load the leaderboard right now. Please try again later.
+          ${errorMessage}
         </td>
       </tr>`;
   }
 }
 
-window.addEventListener("DOMContentLoaded", () => {
-  attachAuthForms();
-  attachLogout();
-  if (!sessionProfile && PROTECTED_PAGES.has(currentPage)) {
-    const profile = getProfile();
-    if (profile && !isProfileExpired(profile)) {
-      setSessionProfile(profile);
-      hydrateUI(profile);
+if (typeof window !== "undefined") {
+  window.addEventListener("DOMContentLoaded", async () => {
+    await initLocalization();
+    attachAuthForms();
+    attachLogout();
+
+    if (!sessionProfile && PROTECTED_PAGES.has(currentPage)) {
+      const profile = getProfile();
+      if (profile && !isProfileExpired(profile)) {
+        setSessionProfile(profile);
+      }
     }
-  }
-  if (currentPage === "leaderboard.html") {
-    loadLeaderboard();
-    window.setInterval(loadLeaderboard, 10_000);
-  }
-});
+
+    if (sessionProfile) {
+      hydrateUI(sessionProfile);
+      refreshDeedStatus(sessionProfile);
+    }
+
+    if (currentPage === "leaderboard.html") {
+      await loadLeaderboard();
+      window.setInterval(loadLeaderboard, 10_000);
+    }
+  });
+
+  window.addEventListener("deeds:submitted", () => {
+    if (sessionProfile) {
+      refreshDeedStatus(sessionProfile);
+    }
+  });
+}
+
+const testingExports = {
+  cacheTranslations(language, data) {
+    translationsCache.set(language, data);
+  },
+  clearTranslations() {
+    translationsCache.clear();
+  },
+  setActiveLanguage(language) {
+    activeLanguage = language;
+  },
+  getActiveLanguage() {
+    return activeLanguage;
+  },
+};
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    resolveTranslationKey,
+    translate,
+    buildBadgeDescriptors,
+    SUPPORTED_LANGUAGES,
+    DEFAULT_LANGUAGE,
+    testing: testingExports,
+  };
+}
