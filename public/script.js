@@ -195,6 +195,18 @@ const badgeToneClasses = {
   info: "border-slate-200 bg-slate-50 text-slate-700",
 };
 
+const statusChipToneClasses = {
+  pending: "border-amber-200 bg-amber-50 text-amber-700",
+  verified: "border-teal-200 bg-teal-50 text-teal-700",
+  muted: "border-slate-200 bg-slate-50 text-slate-600",
+};
+
+const statusChipDotClasses = {
+  pending: "bg-amber-400",
+  verified: "bg-teal-500",
+  muted: "bg-slate-400",
+};
+
 let latestDeedSummary = null;
 
 let sessionProfile = null;
@@ -244,7 +256,15 @@ function saveProfile(profile) {
     clearProfile();
     return null;
   }
-  localStorage.setItem("deeds.profile", JSON.stringify(normalized));
+  if (typeof localStorage === "undefined") {
+    setSessionProfile(normalized);
+    return normalized;
+  }
+  try {
+    localStorage.setItem("deeds.profile", JSON.stringify(normalized));
+  } catch (error) {
+    console.warn("Unable to persist profile", error);
+  }
   setSessionProfile(normalized);
   return normalized;
 }
@@ -389,15 +409,43 @@ function buildBadgeDescriptors(summary) {
 }
 
 function renderStatusBadges(summary) {
+  const pendingCount = summary?.pendingCount ?? 0;
+  const verifiedCount = summary?.verifiedCount ?? 0;
+
   document
     .querySelectorAll('[data-role="status-badges"]')
     .forEach((container) => {
       container.innerHTML = "";
 
+      const statusOverview = document.createElement("div");
+      statusOverview.className = "sm:col-span-2";
+
+      const chipRow = document.createElement("div");
+      chipRow.className = "flex flex-wrap items-center gap-2";
+
+      const pendingChip = createStatusChip(
+        "badges.pendingLabel",
+        "Pending",
+        pendingCount,
+        pendingCount > 0 ? "pending" : "muted",
+      );
+
+      const verifiedChip = createStatusChip(
+        "badges.verifiedLabel",
+        "Verified",
+        verifiedCount,
+        verifiedCount > 0 ? "verified" : "muted",
+      );
+
+      chipRow.appendChild(pendingChip);
+      chipRow.appendChild(verifiedChip);
+      statusOverview.appendChild(chipRow);
+      container.appendChild(statusOverview);
+
       const descriptors = buildBadgeDescriptors(summary);
       if (!descriptors.length) {
         const empty = document.createElement("p");
-        empty.className = "text-sm text-slate-500";
+        empty.className = "text-sm text-slate-500 sm:col-span-2";
         empty.textContent =
           translate("badges.none") ||
           "Complete a deed to unlock your first badge.";
@@ -427,6 +475,36 @@ function renderStatusBadges(summary) {
         container.appendChild(badge);
       });
     });
+}
+
+function createStatusChip(labelKey, fallback, count, tone) {
+  const label = translate(labelKey, { count }) || fallback;
+  const resolvedTone = tone && statusChipToneClasses[tone] ? tone : "muted";
+
+  const chip = document.createElement("span");
+  chip.className = `inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold ${
+    statusChipToneClasses[resolvedTone]
+  }`;
+
+  const indicator = document.createElement("span");
+  indicator.className = `h-2 w-2 rounded-full ${
+    statusChipDotClasses[resolvedTone] || statusChipDotClasses.muted
+  }`;
+  indicator.setAttribute("aria-hidden", "true");
+
+  const labelSpan = document.createElement("span");
+  labelSpan.textContent = label;
+
+  const countBadge = document.createElement("span");
+  countBadge.className =
+    "rounded bg-white/60 px-1.5 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-current";
+  countBadge.textContent = String(count ?? 0);
+
+  chip.appendChild(indicator);
+  chip.appendChild(labelSpan);
+  chip.appendChild(countBadge);
+
+  return chip;
 }
 
 function updateStatusCounters(summary) {
@@ -504,7 +582,16 @@ async function refreshDeedStatus(profile) {
     latestDeedSummary = summary;
     updateStatusCounters(summary);
     renderStatusBadges(summary);
-    hydrateDashboard(profile);
+
+    const updatedProfile = {
+      ...profile,
+      credits: summary.verifiedCount,
+      completed: summary.verifiedCount,
+      timestamp: Date.now(),
+    };
+
+    const normalizedProfile = saveProfile(updatedProfile);
+    hydrateDashboard(normalizedProfile || updatedProfile);
   } catch (error) {
     console.error("Unable to refresh deed status", error);
     updateStatusCounters(null);
@@ -687,8 +774,29 @@ async function loadLeaderboard() {
   const updatedElement = document.querySelector(
     '[data-role="leaderboard-updated"]',
   );
+  const blocksList = document.getElementById("leaderboard-blocks");
+  const blocksEmpty = document.querySelector(
+    '[data-role="leaderboard-blocks-empty"]',
+  );
+  const shoutoutsList = document.getElementById("leaderboard-shoutouts");
+  const shoutoutsEmpty = document.querySelector(
+    '[data-role="leaderboard-shoutouts-empty"]',
+  );
   if (!tbody) {
     return;
+  }
+
+  if (blocksList) {
+    blocksList.innerHTML = "";
+  }
+  if (blocksEmpty) {
+    blocksEmpty.hidden = true;
+  }
+  if (shoutoutsList) {
+    shoutoutsList.innerHTML = "";
+  }
+  if (shoutoutsEmpty) {
+    shoutoutsEmpty.hidden = true;
   }
 
   try {
@@ -704,6 +812,7 @@ async function loadLeaderboard() {
     tbody.innerHTML = "";
 
     let totalVerified = 0;
+    const regionTotals = new Map();
 
     entries.forEach((user, index) => {
       const row = document.createElement("tr");
@@ -711,6 +820,17 @@ async function loadLeaderboard() {
       const credits = Number(user?.credits ?? 0);
       const deedCount = Number(user?.deedCount ?? 0);
       totalVerified += deedCount;
+
+      const normalizedRegion =
+        typeof user?.region === "string" && user.region.trim().length > 0
+          ? user.region.trim()
+          : translate("leaderboard.regionUnknown") || "Across the neighborhood";
+      if (deedCount > 0) {
+        regionTotals.set(
+          normalizedRegion,
+          (regionTotals.get(normalizedRegion) || 0) + deedCount,
+        );
+      }
 
       const labelKey =
         deedCount === 1
@@ -746,16 +866,104 @@ async function loadLeaderboard() {
         "No neighbors on the leaderboard yet. Complete a deed to claim the top spot!";
       emptyRow.innerHTML = `
         <td class="px-4 py-6 text-center text-slate-500" colspan="3">
-          ${emptyMessage}
+      ${emptyMessage}
         </td>`;
       tbody.appendChild(emptyRow);
     }
 
+    if (blocksList) {
+      const sortedRegions = Array.from(regionTotals.entries()).sort(
+        (a, b) => b[1] - a[1] || a[0].localeCompare(b[0]),
+      );
+      const topRegions = sortedRegions.slice(0, 3);
+
+      if (topRegions.length === 0) {
+        if (blocksEmpty) {
+          blocksEmpty.hidden = false;
+        }
+      } else {
+        topRegions.forEach(([regionName, count]) => {
+          const regionLabelKey =
+            count === 1
+              ? "leaderboard.deedLabelSingular"
+              : "leaderboard.deedLabelPlural";
+          const regionLabel =
+            translate(regionLabelKey) || (count === 1 ? "deed" : "deeds");
+          const regionMeta =
+            translate("leaderboard.verifiedMeta", {
+              count,
+              label: regionLabel,
+            }) || `${count} ${regionLabel} verified`;
+
+          const item = document.createElement("li");
+          item.className =
+            "flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2";
+          item.innerHTML = `
+            <span>${regionName}</span>
+            <span class="font-semibold text-teal-700">${regionMeta}</span>
+          `;
+          blocksList.appendChild(item);
+        });
+      }
+    }
+
+    if (shoutoutsList) {
+      const highlightNeighbors = entries
+        .filter((user) => {
+          const deedCount = Number(user?.deedCount ?? 0);
+          const creditCount = Number(user?.credits ?? 0);
+          return deedCount > 0 || creditCount > 0;
+        })
+        .slice(0, 2);
+
+      if (highlightNeighbors.length === 0) {
+        if (shoutoutsEmpty) {
+          shoutoutsEmpty.hidden = false;
+        }
+      } else {
+        highlightNeighbors.forEach((user) => {
+          const name = user?.name || translate("leaderboard.anonymous") || "—";
+          const deedCount = Number(user?.deedCount ?? 0);
+          const regionName =
+            typeof user?.region === "string" && user.region.trim().length > 0
+              ? user.region.trim()
+              : translate("leaderboard.regionUnknown") ||
+                "Across the neighborhood";
+
+          const metaParts = [];
+          if (deedCount > 0) {
+            const labelKey =
+              deedCount === 1
+                ? "leaderboard.deedLabelSingular"
+                : "leaderboard.deedLabelPlural";
+            const deedLabel =
+              translate(labelKey) || (deedCount === 1 ? "deed" : "deeds");
+            const deedMeta =
+              translate("leaderboard.verifiedMeta", {
+                count: deedCount,
+                label: deedLabel,
+              }) || `${deedCount} ${deedLabel} verified`;
+            metaParts.push(deedMeta);
+          }
+
+          if (regionName) {
+            metaParts.push(regionName);
+          }
+
+          const item = document.createElement("li");
+          item.className = "rounded-xl border border-slate-100 bg-slate-50 p-4";
+          const description = metaParts.join(" · ");
+          item.innerHTML = `
+            <p class="font-semibold">${name}</p>
+            <p class="mt-1 text-slate-600">${description}</p>
+          `;
+          shoutoutsList.appendChild(item);
+        });
+      }
+    }
+
     if (totalElement) {
-      const totalMessage =
-        translate("leaderboard.totalCount", { count: totalVerified }) ||
-        `${totalVerified} verified deeds`;
-      totalElement.textContent = totalMessage;
+      totalElement.textContent = totalVerified.toLocaleString();
     }
 
     if (updatedElement) {
@@ -779,6 +987,13 @@ async function loadLeaderboard() {
           ${errorMessage}
         </td>
       </tr>`;
+
+    if (blocksEmpty) {
+      blocksEmpty.hidden = false;
+    }
+    if (shoutoutsEmpty) {
+      shoutoutsEmpty.hidden = false;
+    }
   }
 }
 

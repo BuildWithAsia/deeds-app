@@ -71,7 +71,14 @@
     "empty": "No neighbors on the leaderboard yet. Complete a deed to claim the top spot!",
     "error": "We couldn't load the leaderboard right now. Please try again later.",
     "totalCount": "{{count}} verified deeds",
-    "updatedAt": "Updated {{time}}"
+    "updatedAt": "Updated {{time}}",
+    "blocksTitle": "Block rankings",
+    "blocksEmpty": "No blocks have verified deeds yet.",
+    "blocksHint": "Blocks with 25+ deeds unlock a neighborhood celebration.",
+    "shoutoutsTitle": "Shoutouts",
+    "shoutoutsEmpty": "Complete a deed to unlock neighbor shoutouts.",
+    "nominateCta": "Nominate a neighbor",
+    "regionUnknown": "Across the neighborhood"
   },
   "badges": {
     "sectionTitle": "Verification status",

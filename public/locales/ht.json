@@ -71,7 +71,14 @@
     "empty": "Poko gen moun sou tablo a. Fè yon bon aksyon pou pran premye plas la!",
     "error": "Nou pa rive chaje tablo onè a kounye a. Tanpri eseye ankò pita.",
     "totalCount": "{{count}} aksyon verifye",
-    "updatedAt": "Mizajou {{time}}"
+    "updatedAt": "Mizajou {{time}}",
+    "blocksTitle": "Klasman blòk yo",
+    "blocksEmpty": "Poko gen blòk ki gen aksyon verifye.",
+    "blocksHint": "Blòk ki rive nan 25 aksyon verifye gen yon selebrasyon nan katye a.",
+    "shoutoutsTitle": "Felisitasyon",
+    "shoutoutsEmpty": "Fè yon aksyon pou nou ka felisite vwazen yo.",
+    "nominateCta": "Pwopoze yon vwazen",
+    "regionUnknown": "Toupatou nan katye a"
   },
   "badges": {
     "sectionTitle": "Estati verifikasyon",
