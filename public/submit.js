@@ -52,11 +52,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const submitButton = form.querySelector('button[type="submit"]');
     const formData = new FormData(form);
     const title = String(formData.get("title") || "").trim();
+    const description = String(formData.get("description") || "").trim();
+    const category = String(formData.get("category") || "").trim();
     const proofUrl = String(formData.get("proof_url") || "").trim();
 
-    if (!title || !proofUrl) {
+    if (!title || !proofUrl || !description || !category) {
       updateFeedback(
-        "Please complete the title and proof link before submitting.",
+        "Please complete all required fields before submitting your deed.",
         "error",
       );
       return;
@@ -65,6 +67,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const payload = {
       user_id: profile.id,
       title,
+      description,
+      category,
       proof_url: proofUrl,
     };
 
@@ -89,9 +93,20 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      const newCredits = Number.isFinite(Number(data.new_credits))
+        ? Number(data.new_credits)
+        : null;
+
+      if (newCredits !== null) {
+        profile.credits = newCredits;
+        localStorage.setItem("deeds.profile", JSON.stringify(profile));
+      }
+
       form.reset();
       updateFeedback(
-        "Your deed was submitted. We'll verify it shortly!",
+        newCredits !== null
+          ? `Your deed was submitted! Your credits total is now ${newCredits}.`
+          : "Your deed was submitted. We'll verify it shortly!",
         "success",
       );
     } catch (error) {

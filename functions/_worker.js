@@ -425,6 +425,15 @@ async function handleCreateDeed(request, env) {
     return responseWithMessage("A deed title is required.", 400);
   }
 
+  const description = sanitizeText(
+    payload.description ?? payload.details ?? payload.deed_description,
+  );
+
+  const categoryInput = sanitizeText(
+    payload.category ?? payload.deed_category ?? payload.type,
+  );
+  const category = categoryInput || "general";
+
   const proofUrlInput =
     payload.proof_url ?? payload.proofUrl ?? payload.proof ?? "";
   const normalizedProofUrl = normalizeUrl(proofUrlInput);
@@ -463,21 +472,41 @@ async function handleCreateDeed(request, env) {
       );
     }
 
-    const stmt = db.prepare(
+    const insertStmt = db.prepare(
       `INSERT INTO deeds (
         user_id,
         title,
+        description,
+        category,
         proof_url,
         status,
         credits,
         created_at
-      ) VALUES (?1, ?2, ?3, 'pending', 0, datetime('now'))`,
+      ) VALUES (?1, ?2, ?3, ?4, ?5, 'pending', 1, datetime('now'))`,
     );
 
-    const result = await stmt.bind(userId, title, normalizedProofUrl).run();
+    const result = await insertStmt
+      .bind(userId, title, description || null, category, normalizedProofUrl)
+      .run();
+
+    await db
+      .prepare("UPDATE users SET credits = credits + 1 WHERE id = ?1")
+      .bind(userId)
+      .run();
+
+    const updatedUser = await db
+      .prepare("SELECT credits FROM users WHERE id = ?1")
+      .bind(userId)
+      .first();
+
+    const newCredits = Number(updatedUser?.credits ?? 0);
 
     return Response.json(
-      { success: true, deed_id: result.meta.last_row_id },
+      {
+        success: true,
+        deed_id: result.meta.last_row_id,
+        new_credits: newCredits,
+      },
       { status: 201 },
     );
   } catch (error) {
@@ -540,8 +569,18 @@ async function handleVerifyDeed(request, env) {
       return responseWithMessage("A valid deed_id must be provided.", 400);
     }
 
+    const deed = await env.DEEDS_DB.prepare(
+      "SELECT user_id, credits FROM deeds WHERE id = ?1",
+    )
+      .bind(deedId)
+      .first();
+
+    if (!deed) {
+      return responseWithMessage("We couldn't find that deed.", 404);
+    }
+
     const updateResult = await env.DEEDS_DB.prepare(
-      "UPDATE deeds SET status = 'verified', credits = 1 WHERE id = ?1",
+      "UPDATE deeds SET status = 'verified', credits = CASE WHEN credits > 0 THEN credits ELSE 1 END WHERE id = ?1",
     )
       .bind(deedId)
       .run();
@@ -550,21 +589,15 @@ async function handleVerifyDeed(request, env) {
       return responseWithMessage("We couldn't find that deed.", 404);
     }
 
-    const user = await env.DEEDS_DB.prepare(
-      "SELECT user_id FROM deeds WHERE id = ?1",
-    )
-      .bind(deedId)
-      .first();
+    const deedCredits = Number(deed.credits ?? 0);
 
-    if (!user) {
-      return responseWithMessage("We couldn't find the deed owner.", 404);
+    if (deedCredits <= 0) {
+      await env.DEEDS_DB.prepare(
+        "UPDATE users SET credits = credits + 1 WHERE id = ?1",
+      )
+        .bind(deed.user_id)
+        .run();
     }
-
-    await env.DEEDS_DB.prepare(
-      "UPDATE users SET credits = credits + 1 WHERE id = ?1",
-    )
-      .bind(user.user_id)
-      .run();
 
     return Response.json({ success: true });
   } catch (error) {
@@ -739,7 +772,7 @@ export default {
         }
 
         let query = `
-      SELECT id, user_id, title, proof_url, status, credits, created_at
+      SELECT id, user_id, title, description, category, proof_url, status, credits, created_at
       FROM deeds
     `;
 
