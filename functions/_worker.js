@@ -548,7 +548,7 @@ async function handleVerifyDeed(request, env) {
   if (!env.DEEDS_DB) {
     return responseWithMessage(
       "Database binding missing. Configure DEEDS_DB.",
-      500,
+      500
     );
   }
 
@@ -564,7 +564,7 @@ async function handleVerifyDeed(request, env) {
 
   try {
     const adminUser = await env.DEEDS_DB.prepare(
-      "SELECT id, is_admin FROM users WHERE id = ?1",
+      "SELECT id, is_admin FROM users WHERE id = ?1"
     )
       .bind(session.userId)
       .first();
@@ -583,8 +583,9 @@ async function handleVerifyDeed(request, env) {
       return responseWithMessage("A valid deed_id must be provided.", 400);
     }
 
+    // Step 1: Fetch deed details (including reward)
     const deed = await env.DEEDS_DB.prepare(
-      "SELECT id, user_id, credits, status FROM deeds WHERE id = ?1",
+      "SELECT id, user_id, credits, status, reward FROM deeds WHERE id = ?1"
     )
       .bind(deedId)
       .first();
@@ -597,72 +598,67 @@ async function handleVerifyDeed(request, env) {
       return responseWithMessage("This deed is already verified.", 409);
     }
 
-    const existingCredits = Number(deed.credits ?? 0);
-    const shouldAwardCredit =
-      !Number.isFinite(existingCredits) || existingCredits <= 0;
+    // Step 2: Determine reward
+    const rewardValue = Number(deed.reward ?? 1);
 
-    const updateResult = await env.DEEDS_DB.prepare(
-      "UPDATE deeds SET status = 'verified', credits = CASE WHEN credits > 0 THEN credits ELSE 1 END, verified_at = COALESCE(verified_at, datetime('now')) WHERE id = ?1",
+    // Step 3: Mark deed as verified
+    const updateDeed = await env.DEEDS_DB.prepare(
+      `UPDATE deeds 
+       SET status = 'verified', 
+           credits = ?2, 
+           verified_at = COALESCE(verified_at, datetime('now')) 
+       WHERE id = ?1`
     )
-      .bind(deedId)
+      .bind(deedId, rewardValue)
       .run();
 
-    if (!updateResult.meta || updateResult.meta.changes === 0) {
-      return responseWithMessage("We couldn't find that deed.", 404);
+    if (!updateDeed.meta || updateDeed.meta.changes === 0) {
+      return responseWithMessage("Failed to update deed.", 404);
     }
 
-    let profileSummary = null;
+    // Step 4: Add reward to user credits
+    await env.DEEDS_DB.prepare(
+      "UPDATE users SET credits = COALESCE(credits, 0) + ?2 WHERE id = ?1"
+    )
+      .bind(deed.user_id, rewardValue)
+      .run();
 
-    if (shouldAwardCredit) {
-      await env.DEEDS_DB.prepare(
-        "UPDATE users SET credits = COALESCE(credits, 0) + 1 WHERE id = ?1",
-      )
-        .bind(deed.user_id)
-        .run();
-    }
-
-    try {
-      const summaryResult = await env.DEEDS_DB.prepare(
-        `SELECT
-          u.id,
-          u.name,
-          u.credits,
-          COALESCE(SUM(CASE WHEN d.status = 'verified' THEN 1 ELSE 0 END), 0) AS verified_count
-        FROM users u
-        LEFT JOIN deeds d ON d.user_id = u.id
-        WHERE u.id = ?1
-        GROUP BY u.id`,
-      )
-        .bind(deed.user_id)
-        .first();
-
-      if (summaryResult) {
-        profileSummary = {
-          id: summaryResult.id,
-          name: summaryResult.name,
-          credits: Number(summaryResult.credits ?? 0),
-          verifiedCount: Number(summaryResult.verified_count ?? 0),
-        };
-      }
-    } catch (summaryError) {
-      console.warn("Unable to load updated profile summary", summaryError);
-    }
+    // Step 5: Fetch updated profile summary
+    const summary = await env.DEEDS_DB.prepare(
+      `SELECT 
+         u.id,
+         u.name,
+         u.credits,
+         COUNT(d.id) AS total_deeds,
+         COUNT(CASE WHEN d.status = 'verified' THEN 1 END) AS verified_deeds
+       FROM users u
+       LEFT JOIN deeds d ON u.id = d.user_id
+       WHERE u.id = ?1
+       GROUP BY u.id`
+    )
+      .bind(deed.user_id)
+      .first();
 
     return Response.json({
       success: true,
       deed: {
         id: deed.id,
         status: "verified",
-        credits: shouldAwardCredit ? 1 : Math.max(existingCredits, 1),
+        reward: rewardValue
       },
-      creditsAwarded: shouldAwardCredit ? 1 : 0,
-      profile: profileSummary,
+      profile: {
+        id: summary.id,
+        name: summary.name,
+        credits: Number(summary.credits ?? 0),
+        total_deeds: Number(summary.total_deeds ?? 0),
+        verified_deeds: Number(summary.verified_deeds ?? 0)
+      }
     });
   } catch (error) {
     console.error("Failed to verify deed", error);
     return responseWithMessage(
       "We could not verify the deed. Please try again later.",
-      500,
+      500
     );
   }
 }
