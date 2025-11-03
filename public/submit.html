@@ -113,6 +113,49 @@
                 </p>
               </div>
               <div class="grid gap-2">
+                <label
+                  class="text-sm font-medium text-slate-700"
+                  for="deedCategory"
+                  >Category</label
+                >
+                <select
+                  id="deedCategory"
+                  name="category"
+                  class="rounded-lg border border-slate-200 px-3 py-2 text-base shadow-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
+                  required
+                >
+                  <option value="" disabled selected>Choose a category</option>
+                  <option value="mutual-aid">Mutual aid</option>
+                  <option value="community-care">Community care</option>
+                  <option value="education">Education</option>
+                  <option value="environment">Environment</option>
+                  <option value="civic-action">Civic action</option>
+                  <option value="other">Other</option>
+                </select>
+                <p class="text-xs text-slate-500">
+                  This helps us highlight different impact areas on the
+                  leaderboard.
+                </p>
+              </div>
+              <div class="grid gap-2">
+                <label
+                  class="text-sm font-medium text-slate-700"
+                  for="deedDescription"
+                  >What happened?</label
+                >
+                <textarea
+                  id="deedDescription"
+                  name="description"
+                  rows="4"
+                  placeholder="Share the story, who participated, and who benefited."
+                  class="rounded-lg border border-slate-200 px-3 py-2 text-base shadow-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
+                  required
+                ></textarea>
+                <p class="text-xs text-slate-500">
+                  Add context so our block captain can quickly verify the deed.
+                </p>
+              </div>
+              <div class="grid gap-2">
                 <label class="text-sm font-medium text-slate-700" for="proofUrl"
                   >Proof URL</label
                 >
