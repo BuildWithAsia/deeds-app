@@ -210,11 +210,23 @@ function renderQueue(items) {
     const actionCell = document.createElement("td");
     actionCell.className = "px-6 py-4 align-top text-right";
     const button = document.createElement("button");
+    const isVerified = item?.status === "verified";
     button.type = "button";
-    button.className =
-      "inline-flex items-center justify-center rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600";
-    button.textContent = t("verify.verifyButton", "Verify");
-    button.addEventListener("click", () => verifyDeed(item?.id, button));
+    button.textContent = isVerified
+      ? t("badges.verifiedLabel", "Verified")
+      : t("verify.verifyButton", "Verify");
+
+    if (isVerified) {
+      button.className =
+        "inline-flex items-center justify-center rounded-lg bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-500 shadow-sm cursor-not-allowed";
+      button.disabled = true;
+      button.setAttribute("aria-disabled", "true");
+    } else {
+      button.className =
+        "inline-flex items-center justify-center rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600";
+      button.addEventListener("click", () => verifyDeed(item?.id, button));
+    }
+
     actionCell.appendChild(button);
 
     row.appendChild(deedCell);
