@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Deeds | Log In</title>
+    <title>Deeds | Sign Up</title>
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css"
@@ -26,25 +26,43 @@
               >D</span
             >
           </div>
-          <h1 class="text-3xl font-semibold tracking-tight">Welcome back</h1>
+          <h1 class="text-3xl font-semibold tracking-tight">
+            Create your Deeds account
+          </h1>
           <p class="mt-2 text-sm text-slate-600">
-            Log in to pick your next good deed.
+            Join your neighbors and start earning credit for good deeds.
           </p>
         </div>
         <form
-          id="login-form"
-          data-auth-form="login"
+          id="signup-form"
+          data-auth-form="signup"
           class="px-8 pb-8 space-y-5"
           novalidate
         >
           <div class="space-y-1 text-left">
             <label
               class="block text-sm font-medium text-slate-700"
-              for="login-email"
+              for="signup-name"
+              >Full name</label
+            >
+            <input
+              id="signup-name"
+              name="name"
+              type="text"
+              required
+              autocomplete="name"
+              class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-base shadow-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
+              placeholder="Alex Neighbor"
+            />
+          </div>
+          <div class="space-y-1 text-left">
+            <label
+              class="block text-sm font-medium text-slate-700"
+              for="signup-email"
               >Email address</label
             >
             <input
-              id="login-email"
+              id="signup-email"
               name="email"
               type="email"
               required
@@ -56,26 +74,26 @@
           <div class="space-y-1 text-left">
             <label
               class="block text-sm font-medium text-slate-700"
-              for="login-password"
+              for="signup-password"
               >Password</label
             >
             <input
-              id="login-password"
+              id="signup-password"
               name="password"
               type="password"
               minlength="8"
               required
-              autocomplete="current-password"
+              autocomplete="new-password"
               class="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-base shadow-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
-              placeholder="Enter your password"
+              placeholder="Create a password"
             />
           </div>
           <div class="flex items-center justify-between text-sm">
-            <span class="text-slate-500">Forgot your password?</span>
+            <span class="text-slate-500">Already have an account?</span>
             <a
-              href="signup.html"
+              href="login.html"
               class="font-semibold text-teal-700 hover:text-teal-800"
-              >Create an account</a
+              >Log in</a
             >
           </div>
           <p
@@ -87,7 +105,7 @@
             type="submit"
             class="w-full inline-flex items-center justify-center rounded-lg bg-teal-600 px-4 py-2.5 text-white font-semibold shadow-sm shadow-teal-900/20 transition hover:bg-teal-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600"
           >
-            Log in
+            Create account
           </button>
         </form>
       </div>
