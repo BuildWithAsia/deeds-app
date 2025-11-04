@@ -942,7 +942,7 @@ export default {
         response.headers.set("Access-Control-Allow-Origin", "*");
         return response;
       } catch (error) {
-        console.error("Failed to load leaderboard", error);
+        console.error("Failed to load leaderboard", error.message || error);
         const response = responseWithMessage(
           "Unable to load leaderboard at this time.",
           500,
