@@ -801,6 +801,21 @@ export default {
         return response;
       }
 
+      const sessionSecret = resolveSessionSecret(env);
+      const authHeader = request.headers.get("Authorization") || "";
+      const tokenMatch = authHeader.match(/^Bearer\s+(.+)$/i);
+      const token = tokenMatch ? tokenMatch[1].trim() : "";
+      const session = await verifySessionToken(token, sessionSecret);
+
+      if (!session) {
+        const response = responseWithMessage(
+          "A valid session token is required to view deeds.",
+          403,
+        );
+        response.headers.set("Access-Control-Allow-Origin", "*");
+        return response;
+      }
+
       try {
         const statusParam = (url.searchParams.get("status") || "")
           .trim()
@@ -811,7 +826,7 @@ export default {
 
         // Build base query
         let query = `
-      SELECT 
+      SELECT
         id, user_id, title, description, category, proof_url, status, credits, reward, created_at, verified_at
       FROM deeds
     `;
@@ -822,12 +837,31 @@ export default {
           params.push(statusParam);
         }
 
+        let requestedUserId = null;
         if (userIdParam) {
           const parsed = Number(userIdParam);
           if (Number.isInteger(parsed) && parsed > 0) {
-            conditions.push("user_id = ?");
-            params.push(parsed);
+            requestedUserId = parsed;
           }
+        }
+
+        if (session.isAdmin) {
+          if (requestedUserId) {
+            conditions.push("user_id = ?");
+            params.push(requestedUserId);
+          }
+        } else {
+          if (requestedUserId && requestedUserId !== session.userId) {
+            const response = responseWithMessage(
+              "You can only view your own deeds.",
+              403,
+            );
+            response.headers.set("Access-Control-Allow-Origin", "*");
+            return response;
+          }
+
+          conditions.push("user_id = ?");
+          params.push(session.userId);
         }
 
         if (conditions.length > 0) {

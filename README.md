@@ -29,10 +29,12 @@ migrations/      # D1 database schema migrations
 | ------ | ---- | ----------- |
 | `POST` | `/api/auth/signup` | Registers a new neighbor profile, hashes the provided password, stores the record in D1, and returns the persisted profile payload. |
 | `POST` | `/api/auth/login` | Authenticates an existing profile by verifying the submitted password, automatically upgrading legacy hashes, and responding with the stored profile. |
-| `GET` | `/api/deeds` | Lists deeds from D1. Supports an optional `status` query parameter (`pending`, `verified`, or `all`) and defaults to verified deeds. |
+| `GET` | `/api/deeds` | Lists deeds from D1. Requires a bearer session token and supports optional `status` (`pending`, `verified`, `all`) and `user_id` filters. |
 | `POST` | `/api/deeds` | Accepts deed submissions with proof metadata, persists them, and returns the created deed entry. |
 | `POST` | `/api/verify` | Marks an existing deed as verified, awarding credits and updating the submission status. |
 | `GET` | `/api/leaderboard` | Returns the top verified neighbors along with their credit totals for the leaderboard view. |
+
+> **Authorization:** Supply an `Authorization: Bearer <token>` header obtained from `/api/auth/login` or `/api/auth/signup` when calling `/api/deeds`. Non-admin users are limited to their own `user_id`, while administrators can query the broader dataset.
 
 ## Frontend pages
 
