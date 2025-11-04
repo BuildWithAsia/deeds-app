@@ -548,7 +548,7 @@ async function handleVerifyDeed(request, env) {
   if (!env.DEEDS_DB) {
     return responseWithMessage(
       "Database binding missing. Configure DEEDS_DB.",
-      500
+      500,
     );
   }
 
@@ -564,7 +564,7 @@ async function handleVerifyDeed(request, env) {
 
   try {
     const adminUser = await env.DEEDS_DB.prepare(
-      "SELECT id, is_admin FROM users WHERE id = ?1"
+      "SELECT id, is_admin FROM users WHERE id = ?1",
     )
       .bind(session.userId)
       .first();
@@ -585,7 +585,7 @@ async function handleVerifyDeed(request, env) {
 
     // Step 1: Fetch deed details (including reward)
     const deed = await env.DEEDS_DB.prepare(
-      "SELECT id, user_id, credits, status, reward FROM deeds WHERE id = ?1"
+      "SELECT id, user_id, credits, status, reward FROM deeds WHERE id = ?1",
     )
       .bind(deedId)
       .first();
@@ -607,7 +607,7 @@ async function handleVerifyDeed(request, env) {
        SET status = 'verified', 
            credits = ?2, 
            verified_at = COALESCE(verified_at, datetime('now')) 
-       WHERE id = ?1`
+       WHERE id = ?1`,
     )
       .bind(deedId, rewardValue)
       .run();
@@ -618,7 +618,7 @@ async function handleVerifyDeed(request, env) {
 
     // Step 4: Add reward to user credits
     await env.DEEDS_DB.prepare(
-      "UPDATE users SET credits = COALESCE(credits, 0) + ?2 WHERE id = ?1"
+      "UPDATE users SET credits = COALESCE(credits, 0) + ?2 WHERE id = ?1",
     )
       .bind(deed.user_id, rewardValue)
       .run();
@@ -634,7 +634,7 @@ async function handleVerifyDeed(request, env) {
        FROM users u
        LEFT JOIN deeds d ON u.id = d.user_id
        WHERE u.id = ?1
-       GROUP BY u.id`
+       GROUP BY u.id`,
     )
       .bind(deed.user_id)
       .first();
@@ -644,21 +644,21 @@ async function handleVerifyDeed(request, env) {
       deed: {
         id: deed.id,
         status: "verified",
-        reward: rewardValue
+        reward: rewardValue,
       },
       profile: {
         id: summary.id,
         name: summary.name,
         credits: Number(summary.credits ?? 0),
         total_deeds: Number(summary.total_deeds ?? 0),
-        verified_deeds: Number(summary.verified_deeds ?? 0)
-      }
+        verified_deeds: Number(summary.verified_deeds ?? 0),
+      },
     });
   } catch (error) {
     console.error("Failed to verify deed", error);
     return responseWithMessage(
       "We could not verify the deed. Please try again later.",
-      500
+      500,
     );
   }
 }
@@ -791,63 +791,70 @@ export default {
 
     //deeds start
 
-if (url.pathname === "/api/deeds" && request.method === "GET") {
-  if (!env.DEEDS_DB) {
-    const response = responseWithMessage("Database binding missing. Configure DEEDS_DB.", 500);
-    response.headers.set("Access-Control-Allow-Origin", "*");
-    return response;
-  }
+    if (url.pathname === "/api/deeds" && request.method === "GET") {
+      if (!env.DEEDS_DB) {
+        const response = responseWithMessage(
+          "Database binding missing. Configure DEEDS_DB.",
+          500,
+        );
+        response.headers.set("Access-Control-Allow-Origin", "*");
+        return response;
+      }
 
-  try {
-    const statusParam = (url.searchParams.get("status") || "").trim().toLowerCase();
-    const userIdParam = url.searchParams.get("user_id");
-    const params = [];
-    const conditions = [];
+      try {
+        const statusParam = (url.searchParams.get("status") || "")
+          .trim()
+          .toLowerCase();
+        const userIdParam = url.searchParams.get("user_id");
+        const params = [];
+        const conditions = [];
 
-    // Build base query
-    let query = `
+        // Build base query
+        let query = `
       SELECT 
         id, user_id, title, description, category, proof_url, status, credits, reward, created_at, verified_at
       FROM deeds
     `;
 
-    // Optional filtering
-    if (statusParam && statusParam !== "all") {
-      conditions.push("status = ?");
-      params.push(statusParam);
-    }
+        // Optional filtering
+        if (statusParam && statusParam !== "all") {
+          conditions.push("status = ?");
+          params.push(statusParam);
+        }
 
-    if (userIdParam) {
-      const parsed = Number(userIdParam);
-      if (Number.isInteger(parsed) && parsed > 0) {
-        conditions.push("user_id = ?");
-        params.push(parsed);
+        if (userIdParam) {
+          const parsed = Number(userIdParam);
+          if (Number.isInteger(parsed) && parsed > 0) {
+            conditions.push("user_id = ?");
+            params.push(parsed);
+          }
+        }
+
+        if (conditions.length > 0) {
+          query += " WHERE " + conditions.join(" AND ");
+        }
+
+        query += " ORDER BY datetime(created_at) DESC, id DESC";
+
+        const { results } = await env.DEEDS_DB.prepare(query)
+          .bind(...params)
+          .all();
+
+        const response = Response.json(results || []);
+        response.headers.set("Access-Control-Allow-Origin", "*");
+        return response;
+      } catch (error) {
+        console.error("Failed to load deeds", error.message || error);
+        const response = responseWithMessage("Error fetching deeds.", 500, {
+          error: error.message,
+        });
+        response.headers.set("Access-Control-Allow-Origin", "*");
+        return response;
       }
     }
 
-    if (conditions.length > 0) {
-      query += " WHERE " + conditions.join(" AND ");
-    }
+    //deeds get end
 
-    query += " ORDER BY datetime(created_at) DESC, id DESC";
-
-    const { results } = await env.DEEDS_DB.prepare(query).bind(...params).all();
-
-    const response = Response.json(results || []);
-    response.headers.set("Access-Control-Allow-Origin", "*");
-    return response;
-  } catch (error) {
-    console.error("Failed to load deeds", error.message || error);
-    const response = responseWithMessage("Error fetching deeds.", 500, { error: error.message });
-    response.headers.set("Access-Control-Allow-Origin", "*");
-    return response;
-  }
-}
-
-
-
-    //deeds get end 
-    
     if (url.pathname === "/api/deeds" && request.method === "POST") {
       const response = await handleCreateDeed(request, env);
       response.headers.set("Access-Control-Allow-Origin", "*");
@@ -922,16 +929,20 @@ if (url.pathname === "/api/deeds" && request.method === "GET") {
       }
     }
 
-// insert 
+    // insert
     if (url.pathname === "/api/profile" && request.method === "GET") {
-  const userId = Number(url.searchParams.get("user_id"));
-  if (!userId || userId <= 0) {
-    const response = Response.json({ message: "Missing or invalid user_id" }, { status: 400 });
-    response.headers.set("Access-Control-Allow-Origin", "*");
-    return response;
-  }
+      const userId = Number(url.searchParams.get("user_id"));
+      if (!userId || userId <= 0) {
+        const response = Response.json(
+          { message: "Missing or invalid user_id" },
+          { status: 400 },
+        );
+        response.headers.set("Access-Control-Allow-Origin", "*");
+        return response;
+      }
 
-  const { results } = await env.DEEDS_DB.prepare(`
+      const { results } = await env.DEEDS_DB.prepare(
+        `
     SELECT 
       u.id, 
       u.name, 
@@ -943,22 +954,18 @@ if (url.pathname === "/api/deeds" && request.method === "GET") {
     LEFT JOIN deeds d ON u.id = d.user_id
     WHERE u.id = ?
     GROUP BY u.id;
-  `).bind(userId).all();
+  `,
+      )
+        .bind(userId)
+        .all();
 
-  const profile = results[0] || null;
+      const profile = results[0] || null;
 
-  const response = Response.json(profile || { message: "User not found" });
-  response.headers.set("Access-Control-Allow-Origin", "*");
-  return response;
-}
-// end
-
-
-
-
-
-
-    
+      const response = Response.json(profile || { message: "User not found" });
+      response.headers.set("Access-Control-Allow-Origin", "*");
+      return response;
+    }
+    // end
 
     if (env.ASSETS) {
       let assetRequest = request;
