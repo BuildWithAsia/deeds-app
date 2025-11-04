@@ -901,6 +901,37 @@ export default {
       return response;
     }
 
+    // Deed catalog (for pre-defined deeds)
+if (url.pathname === "/api/deed_catalog" && request.method === "GET") {
+  if (!env.DEEDS_DB) {
+    const response = responseWithMessage(
+      "Database binding missing. Configure DEEDS_DB.",
+      500,
+    );
+    response.headers.set("Access-Control-Allow-Origin", "*");
+    return response;
+  }
+
+  try {
+    const { results } = await env.DEEDS_DB.prepare(
+      "SELECT id, title, description, impact, duration FROM deed_catalog ORDER BY id ASC"
+    ).all();
+
+    const response = Response.json(results || []);
+    response.headers.set("Access-Control-Allow-Origin", "*");
+    return response;
+  } catch (error) {
+    console.error("Failed to load deed catalog", error);
+    const response = responseWithMessage(
+      "Unable to load deed catalog at this time.",
+      500,
+    );
+    response.headers.set("Access-Control-Allow-Origin", "*");
+    return response;
+  }
+}
+
+
    if (url.pathname === "/api/leaderboard" && request.method === "GET") {
   if (!env.DEEDS_DB) {
     const response = responseWithMessage(
