@@ -287,12 +287,7 @@ async function fetchQueue() {
       ),
       "error",
     );
-    if (summary) {
-      summary.textContent = t(
-        "verify.summary.unavailable",
-        "Queue unavailable",
-      );
-    }
+    updateSummaryBadges({ isUnavailable: true });
   } finally {
     if (loading) {
       loading.hidden = true;
@@ -324,10 +319,7 @@ function updateSummaryBadges({
   if (isUnavailable) {
     const message = document.createElement("span");
     message.className = "text-xs text-rose-600";
-    message.textContent = t(
-      "verify.flashError",
-      "We couldn't load the pending queue. Please try again shortly.",
-    );
+    message.textContent = t("verify.summary.unavailable", "Queue unavailable");
     summary.appendChild(message);
     return;
   }
