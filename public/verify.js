@@ -253,8 +253,24 @@ async function fetchQueue() {
   updateSummaryBadges({ isLoading: true });
 
   try {
+    const token = activeProfile?.sessionToken;
+    if (!token) {
+      setFlash(
+        t(
+          "verify.missingToken",
+          "Missing admin session token. Please sign in again.",
+        ),
+        "error",
+      );
+      updateSummaryBadges({ isUnavailable: true });
+      return;
+    }
+
     const response = await fetch("/api/deeds?status=pending", {
-      headers: { Accept: "application/json" },
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     if (!response.ok) {
