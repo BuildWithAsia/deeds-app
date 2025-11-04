@@ -901,53 +901,42 @@ export default {
       return response;
     }
 
-    if (url.pathname === "/api/leaderboard" && request.method === "GET") {
-      if (!env.DEEDS_DB) {
-        const response = responseWithMessage(
-          "Database binding missing. Configure DEEDS_DB.",
-          500,
-        );
-        response.headers.set("Access-Control-Allow-Origin", "*");
-        return response;
-      }
+   if (url.pathname === "/api/leaderboard" && request.method === "GET") {
+  if (!env.DEEDS_DB) {
+    const response = responseWithMessage(
+      "Database binding missing. Configure DEEDS_DB.",
+      500,
+    );
+    response.headers.set("Access-Control-Allow-Origin", "*");
+    return response;
+  }
 
       try {
-        const results = await env.DEEDS_DB.prepare(
-          `
-      WITH verified_counts AS (
-        SELECT user_id, COUNT(*) AS deed_count
-        FROM deeds
-        WHERE status = ?1
-        GROUP BY user_id
-      )
-      SELECT
+        const results = await env.DEEDS_DB.prepare(`
+      SELECT 
         u.id AS user_id,
-        u.name AS name,
-        u.region AS region,
-        u.credits AS stored_credits,
-        COALESCE(vc.deed_count, 0) AS deed_count
+        u.name,
+        u.region,
+        u.sector,
+        COALESCE(u.credits, 0) AS credits,
+        COUNT(d.id) AS total_deeds,
+        COUNT(CASE WHEN d.status = 'verified' THEN 1 END) AS deeds_verified
       FROM users u
-      LEFT JOIN verified_counts vc
-        ON u.id = vc.user_id
-      ORDER BY COALESCE(u.credits, vc.deed_count) DESC, vc.deed_count DESC, u.name ASC
-      LIMIT 10;
-    `,
-        )
-          .bind("verified")
-          .all();
-        const leaderboard = (results.results || []).map((row) => {
-          const deedCount = Number(row.deed_count ?? 0);
-          const credits = Number(
-            row.stored_credits != null ? row.stored_credits : deedCount,
-          );
-
-          return {
-            name: row.name ?? "Neighbor",
-            credits,
-            deedCount,
-            region: row.region ?? null,
-          };
-        });
+      LEFT JOIN deeds d ON u.id = d.user_id
+      GROUP BY u.id
+      ORDER BY u.credits DESC, deeds_verified DESC, u.name ASC
+      LIMIT 50;
+    `).all();
+        
+ const leaderboard = (results || []).map((row) => ({
+      id: row.user_id,
+      name: row.name || "Neighbor",
+      region: row.region || "—",
+      sector: row.sector || "General",
+      credits: Number(row.credits ?? 0),
+      deeds_verified: Number(row.deeds_verified ?? 0),
+      total_deeds: Number(row.total_deeds ?? 0),
+    }));
 
         const response = Response.json(leaderboard);
         response.headers.set("Access-Control-Allow-Origin", "*");
