@@ -253,8 +253,24 @@ async function fetchQueue() {
   updateSummaryBadges({ isLoading: true });
 
   try {
+    const token = activeProfile?.sessionToken;
+    if (!token) {
+      setFlash(
+        t(
+          "verify.missingToken",
+          "Missing admin session token. Please sign in again.",
+        ),
+        "error",
+      );
+      updateSummaryBadges({ isUnavailable: true });
+      return;
+    }
+
     const response = await fetch("/api/deeds?status=pending", {
-      headers: { Accept: "application/json" },
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     if (!response.ok) {
@@ -287,12 +303,7 @@ async function fetchQueue() {
       ),
       "error",
     );
-    if (summary) {
-      summary.textContent = t(
-        "verify.summary.unavailable",
-        "Queue unavailable",
-      );
-    }
+    updateSummaryBadges({ isUnavailable: true });
   } finally {
     if (loading) {
       loading.hidden = true;
@@ -324,10 +335,7 @@ function updateSummaryBadges({
   if (isUnavailable) {
     const message = document.createElement("span");
     message.className = "text-xs text-rose-600";
-    message.textContent = t(
-      "verify.flashError",
-      "We couldn't load the pending queue. Please try again shortly.",
-    );
+    message.textContent = t("verify.summary.unavailable", "Queue unavailable");
     summary.appendChild(message);
     return;
   }

@@ -6,13 +6,62 @@
     <title>Deeds</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body class="bg-slate-100 text-slate-900">
-    <main class="min-h-screen flex items-center justify-center">
-      <section class="text-center space-y-4">
-        <h1 class="text-3xl font-semibold">Deeds landing page coming soon</h1>
-        <p class="text-slate-600">
-          We're currently working on a new experience. Please check back later.
+  <body class="landing-body">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <main id="main-content" class="landing-container">
+      <section class="landing-content">
+        <p class="landing-kicker">Global Diaspora Collective</p>
+        <h1 class="landing-title">Rooted in rhythm, powered by every deed.</h1>
+        <p class="landing-description">
+          Deeds keeps our Diaspora moving—connecting aunties, neighbors, and
+          homies worldwide to verify good works, uplift local heroes, and send
+          ripples of joy back home.
         </p>
+        <div class="landing-tags" aria-hidden="true">
+          <span class="landing-tag">Ubuntu</span>
+          <span class="landing-tag">Sankofa</span>
+          <span class="landing-tag">Lakou</span>
+        </div>
+        <div class="landing-actions">
+          <a class="landing-button" href="signup.html">Join the movement</a>
+          <a class="landing-link" href="leaderboard.html"
+            >Celebrate the leaders</a
+          >
+        </div>
+      </section>
+
+      <figure class="landing-visual">
+        <img
+          src="2CBED559-9A8B-4B84-A4EC-7E659F27DAD2.png
+?auto=format&fit=crop&w=1200&q=80"
+          alt="Community dancing together in colorful traditional prints"
+          loading="lazy"
+        />
+        <figcaption class="landing-visual-caption">
+          Diaspora energy, from Lagos rooftops to Little Haiti block parties.
+        </figcaption>
+      </figure>
+
+      <section class="landing-player" aria-labelledby="ambient-loop-title">
+        <div class="landing-player-header">
+          <h2 id="ambient-loop-title">Set the diaspora vibe</h2>
+          <p>
+            Press play to loop our amapiano-meets-kompa mix while you explore.
+            Mwen renmen son an? Nou tou! Hit replay any time.
+          </p>
+        </div>
+        <audio
+          controls
+          loop
+          preload="auto"
+          aria-label="Play or pause the amapiano and kompa mix"
+        >
+          <source
+            src="https://cdn.pixabay.com/audio/2023/09/05/audio_0eb7a9932b.mp3"
+            type="audio/mpeg"
+          />
+          Your browser does not support the audio element.
+        </audio>
       </section>
     </main>
   </body>

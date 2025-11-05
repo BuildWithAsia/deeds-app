@@ -4,6 +4,9 @@ compatibility_date = "2023-10-23"
 
 [vars]
 DEMO_MODE_ENABLED = "false"
+SESSION_SECRET = "7627942201"
+
+
 
 [env.demo]
 [env.demo.vars]
@@ -20,11 +23,10 @@ database_name = "deeds-app-db"
 database_id = "6f28b6d0-bd5c-4e30-9703-a13079d9d44f"
 
 [observability]
-enabled = false
+enabled = true
 head_sampling_rate = 1
 
 [observability.logs]
 enabled = true
-head_sampling_rate = 1
 persist = true
 invocation_logs = true
