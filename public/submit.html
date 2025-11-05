@@ -13,144 +13,168 @@
     }
 
     body {
-      background-color: var(--navy);
-      color: var(--sand);
-      font-family: "Inter", system-ui, sans-serif;
       margin: 0;
-      padding: 2rem;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
+      font-family: "Inter", system-ui, sans-serif;
+      background: radial-gradient(circle at top left, var(--navy) 60%, #00112b 100%);
+      color: var(--sand);
       min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
     }
 
     main {
-      background: rgba(239, 231, 216, 0.08);
-      border: 1px solid rgba(239, 231, 216, 0.15);
-      border-radius: 1rem;
-      max-width: 500px;
+      max-width: 600px;
       width: 100%;
-      padding: 2rem 2.5rem;
-      box-shadow: 0 20px 40px -10px rgba(0, 183, 179, 0.4);
+      background: rgba(239, 231, 216, 0.05);
+      border: 1px solid rgba(0, 183, 179, 0.2);
+      border-radius: 1.5rem;
+      padding: 2.5rem;
+      box-shadow: 0 25px 60px -20px rgba(255, 30, 138, 0.35);
+      backdrop-filter: blur(8px);
     }
 
     h1 {
+      background: linear-gradient(90deg, var(--magenta), var(--teal));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
       text-align: center;
-      color: var(--teal);
       margin-bottom: 1.5rem;
-      font-size: 1.75rem;
+      font-size: 1.9rem;
+      font-weight: 700;
     }
 
-    fieldset {
-      border: none;
-      margin: 1.5rem 0;
-      padding: 0;
+    .deed-list {
+      display: grid;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
     }
 
-    label {
-      display: block;
-      margin-bottom: 0.25rem;
-      font-weight: 600;
+    .deed-card {
+      background: rgba(0, 183, 179, 0.1);
+      border: 2px solid transparent;
+      border-radius: 1rem;
+      padding: 1rem 1.25rem;
+      cursor: pointer;
+      transition: all 0.25s ease;
     }
 
-    input[type="url"],
+    .deed-card:hover {
+      background: rgba(255, 30, 138, 0.15);
+      border-color: var(--magenta);
+      transform: scale(1.02);
+    }
+
+    .deed-card.active {
+      border-color: var(--teal);
+      background: rgba(0, 183, 179, 0.25);
+      box-shadow: 0 0 15px rgba(0, 183, 179, 0.4);
+    }
+
+    .deed-card h3 {
+      margin: 0 0 0.25rem 0;
+      font-size: 1.1rem;
+      color: var(--sand);
+    }
+
+    .deed-card p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: rgba(239, 231, 216, 0.8);
+    }
+
+    input,
     textarea {
       width: 100%;
-      padding: 0.7rem;
-      border: 1px solid rgba(239, 231, 216, 0.3);
-      border-radius: 0.5rem;
-      font-size: 1rem;
-      background: var(--sand);
-      color: var(--navy);
-    }
-
-    input[type="radio"] {
-      accent-color: var(--magenta);
-      transform: scale(1.2);
-      margin-right: 0.5rem;
-    }
-
-    .deed-option {
-      background: rgba(0, 183, 179, 0.08);
-      border-radius: 0.75rem;
-      padding: 0.75rem 1rem;
-      margin-bottom: 0.75rem;
-      border: 1px solid rgba(0, 183, 179, 0.2);
+      margin-top: 0.25rem;
+      margin-bottom: 1rem;
+      padding: 0.7rem 0.9rem;
+      border-radius: 0.6rem;
+      border: 1px solid rgba(239, 231, 216, 0.25);
+      background: rgba(239, 231, 216, 0.1);
+      color: var(--sand);
+      font-size: 0.95rem;
     }
 
     button {
-      background-color: var(--teal);
-      color: var(--navy);
-      border: none;
-      border-radius: 999px;
-      padding: 0.8rem 1.5rem;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
       width: 100%;
-      margin-top: 1.25rem;
-      transition: background-color 0.2s ease;
+      padding: 0.9rem;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(90deg, var(--teal), var(--magenta));
+      color: var(--navy);
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
 
     button:hover {
-      background-color: var(--magenta);
-      color: var(--sand);
+      transform: translateY(-2px);
+      box-shadow: 0 0 15px rgba(255, 30, 138, 0.4);
     }
 
     .footer-note {
       text-align: center;
       font-size: 0.85rem;
-      color: rgba(239, 231, 216, 0.65);
-      margin-top: 1.25rem;
+      color: rgba(239, 231, 216, 0.7);
+      margin-top: 1rem;
     }
   </style>
 </head>
 <body>
   <main>
-    <h1>Submit a Deed</h1>
-    <form id="deed-form" onsubmit="submitDeed(event)">
-      <fieldset id="deed-options">
-        <legend style="margin-bottom:0.5rem;">Choose a deed</legend>
-        <!-- Deed radio options will load here -->
-      </fieldset>
+    <h1>Submit Your Deed</h1>
+    <div class="deed-list" id="deed-list"></div>
 
-      <label for="proof_url">Proof link</label>
+    <form id="deed-form" onsubmit="submitDeed(event)">
+      <label for="proof_url">Proof Link</label>
       <input type="url" id="proof_url" placeholder="https://..." required />
 
       <label for="description">Reflection (optional)</label>
-      <textarea id="description" rows="3" placeholder="What did you do? What did you learn?"></textarea>
+      <textarea id="description" rows="3" placeholder="What did this deed mean to you?"></textarea>
 
-      <button type="submit">Submit Deed</button>
+      <button type="submit">Send for Verification</button>
     </form>
-    <p class="footer-note">Every deed counts. 🌱</p>
+
+    <p class="footer-note">Rooted in rhythm, powered by every deed. 🌍</p>
   </main>
 
   <script>
-    async function loadDeeds() {
-      const res = await fetch("/api/deed_catalog");
-      const deeds = await res.json();
-      const container = document.getElementById("deed-options");
+    let selectedDeed = null;
 
-      deeds.forEach((deed) => {
-        const div = document.createElement("div");
-        div.className = "deed-option";
-        div.innerHTML = `
-          <label>
-            <input type="radio" name="deed" value="${deed.id}" required>
-            <strong>${deed.title}</strong>
-            <br><small>${deed.description}</small><br>
-            <small style="color:var(--teal);">${deed.impact} • ${deed.duration}</small>
-          </label>
-        `;
-        container.appendChild(div);
-      });
+    async function loadDeeds() {
+      try {
+        const res = await fetch("/api/deed_catalog");
+        const deeds = await res.json();
+        const container = document.getElementById("deed-list");
+
+        deeds.forEach((deed) => {
+          const card = document.createElement("div");
+          card.className = "deed-card";
+          card.innerHTML = `
+            <h3>${deed.title}</h3>
+            <p>${deed.description}</p>
+            <p style="color: var(--teal); font-size: 0.85rem;">${deed.impact} • ${deed.duration}</p>
+          `;
+          card.onclick = () => selectDeed(card, deed);
+          container.appendChild(card);
+        });
+      } catch (err) {
+        console.error("Failed to load deeds", err);
+      }
+    }
+
+    function selectDeed(card, deed) {
+      document.querySelectorAll(".deed-card").forEach(c => c.classList.remove("active"));
+      card.classList.add("active");
+      selectedDeed = deed;
     }
 
     async function submitDeed(event) {
       event.preventDefault();
-
-      const selected = document.querySelector('input[name="deed"]:checked');
-      if (!selected) return alert("Please choose a deed.");
+      if (!selectedDeed) return alert("Please select a deed.");
 
       const proof_url = document.getElementById("proof_url").value.trim();
       const description = document.getElementById("description").value.trim();
@@ -165,7 +189,7 @@
         },
         body: JSON.stringify({
           user_id,
-          title: selected.nextSibling.textContent.trim(),
+          title: selectedDeed.title,
           description,
           proof_url,
         }),
@@ -175,6 +199,8 @@
       if (response.ok && result.success) {
         alert("✅ Deed submitted successfully! Awaiting verification.");
         document.getElementById("deed-form").reset();
+        document.querySelectorAll(".deed-card").forEach(c => c.classList.remove("active"));
+        selectedDeed = null;
       } else {
         alert("⚠️ " + (result.message || "Something went wrong."));
       }
