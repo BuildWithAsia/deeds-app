@@ -19,7 +19,7 @@
     container.innerHTML = "<li class='p-4 text-center text-slate-400'>Loading...</li>";
 
     try {
-      const res = await fetch("https://deeds-app.asialakaygrady-6d4.workers.dev/api/leaderboard");
+      const res = await fetch("api/leaderboard");
       if (!res.ok) throw new Error("Failed to fetch leaderboard");
       const data = await res.json();
 
