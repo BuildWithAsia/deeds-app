@@ -207,9 +207,9 @@ async function handleCreateDeed(request, env) {
   try {
     await db
       .prepare(
-        "INSERT INTO deeds (user_id,title,description,impact,duration,status,created_at) VALUES (?1,?2,?3,?4,?5,'pending',datetime('now'))"
+        "INSERT INTO deeds (user_id,title,description,proof_url,impact,duration,status,created_at) VALUES (?1,?2,?3,?4,?5,?6,'pending',datetime('now'))"
       )
-      .bind(userId, title, body.description || "", body.impact || "", body.duration || "")
+      .bind(userId, title, body.description || "", proof, body.impact || "", body.duration || "")
       .run();
     return responseWithMessage("Deed submitted for review.", 201, { success: true });
   } catch (error) {
