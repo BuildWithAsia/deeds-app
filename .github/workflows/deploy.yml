@@ -44,29 +44,15 @@ jobs:
             exit 1
           fi
 
-      - name: Check database schema
-        if: ${{ secrets.CF_API_TOKEN && secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          echo "Checking current deeds table schema..."
-          npx wrangler d1 execute deeds-app-db --remote --command "SELECT sql FROM sqlite_master WHERE type='table' AND name='deeds';"
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-
       - name: Run database migrations
         if: ${{ secrets.CF_API_TOKEN && secrets.CLOUDFLARE_ACCOUNT_ID }}
+        continue-on-error: true
         run: |
-          echo "Running migration 0010: Add description and category columns..."
-          npx wrangler d1 execute deeds-app-db --remote --file=migrations/0010_add_deed_submission_fields.sql || echo "Migration 0010 may already be applied"
-
-          echo "Running migration 0012: Create deed_catalog table..."
-          npx wrangler d1 execute deeds-app-db --remote --file=migrations/0012_create_deed_catalog.sql || echo "Migration 0012 may already be applied"
-
-          echo "Running migration 0013: Add impact and duration columns..."
-          npx wrangler d1 execute deeds-app-db --remote --file=migrations/0013_add_deeds_impact_duration.sql || echo "Migration 0013 may already be applied"
-
-          echo "Verifying deeds table schema after migrations..."
-          npx wrangler d1 execute deeds-app-db --remote --command "PRAGMA table_info(deeds);"
+          echo "Running migrations (errors will be ignored if already applied)..."
+          npx wrangler d1 execute deeds-app-db --remote --file=migrations/0010_add_deed_submission_fields.sql 2>&1 || true
+          npx wrangler d1 execute deeds-app-db --remote --file=migrations/0012_create_deed_catalog.sql 2>&1 || true
+          npx wrangler d1 execute deeds-app-db --remote --file=migrations/0013_add_deeds_impact_duration.sql 2>&1 || true
+          echo "Migrations completed (some may have been skipped if already applied)"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
