@@ -205,6 +205,7 @@ async function handleCreateDeed(request, env) {
   if (!userId || !title || !proof) return responseWithMessage("Missing deed data.", 400);
 
   try {
+    // First, try with all columns (if migrations 0010 and 0013 have been run)
     await db
       .prepare(
         "INSERT INTO deeds (user_id,title,description,proof_url,impact,duration,status,created_at) VALUES (?1,?2,?3,?4,?5,?6,'pending',datetime('now'))"
@@ -213,8 +214,22 @@ async function handleCreateDeed(request, env) {
       .run();
     return responseWithMessage("Deed submitted for review.", 201, { success: true });
   } catch (error) {
-    console.error("Database error creating deed:", error);
-    return responseWithMessage(`Database error: ${error.message}`, 500);
+    console.error("Database error creating deed (attempting with all columns):", error);
+
+    // If that fails, try with just the base columns (user_id, title, proof_url, status, created_at)
+    try {
+      console.log("Retrying with base schema columns only...");
+      await db
+        .prepare(
+          "INSERT INTO deeds (user_id,title,proof_url,status,created_at) VALUES (?1,?2,?3,'pending',datetime('now'))"
+        )
+        .bind(userId, title, proof)
+        .run();
+      return responseWithMessage("Deed submitted for review.", 201, { success: true });
+    } catch (fallbackError) {
+      console.error("Database error creating deed (base columns):", fallbackError);
+      return responseWithMessage(`Database error: ${fallbackError.message}. You may need to run migrations 0010 and 0013.`, 500);
+    }
   }
 }
 
