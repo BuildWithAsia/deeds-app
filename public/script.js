@@ -288,12 +288,9 @@ function normalizeStoredProfile(rawProfile) {
 
   const normalized = { ...rawProfile };
 
-  const adminFlag =
-    rawProfile.isAdmin != null
-      ? !!rawProfile.isAdmin
-      : rawProfile.is_admin != null
-        ? !!rawProfile.is_admin
-        : false;
+  // Use role field as the source of truth
+  const role = rawProfile.role || 'user';
+  const isAdmin = role === 'admin';
 
   const sessionToken =
     typeof rawProfile.sessionToken === "string" && rawProfile.sessionToken
@@ -302,9 +299,8 @@ function normalizeStoredProfile(rawProfile) {
         ? rawProfile.token
         : null;
 
-  normalized.isAdmin = adminFlag;
-  normalized.is_admin =
-    rawProfile.is_admin != null ? !!rawProfile.is_admin : adminFlag;
+  normalized.role = role;
+  normalized.isAdmin = isAdmin;
   normalized.sessionToken = sessionToken;
   if (sessionToken && !normalized.token) {
     normalized.token = sessionToken;

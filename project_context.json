@@ -1,0 +1,487 @@
+{
+  "project": {
+    "name": "Deeds App",
+    "tagline": "Ayiti of Deeds - Rooted in rhythm, powered by every deed",
+    "description": "A community-driven platform for verifying and tracking good deeds within the diaspora. Users submit deeds with proof, admins verify them, and contributors earn credits displayed on a public leaderboard.",
+    "mission": "Connecting aunties, neighbors, friends and families worldwide to verify good works, uplift local heroes, and make sustainable changes by the people, for the people with a new form of governance.",
+    "cultural_values": ["Ubuntu", "Sankofa", "Lakou"]
+  },
+  
+  "architecture": {
+    "type": "Full-stack serverless web application",
+    "platform": "Cloudflare Workers + D1 Database",
+    "hosting": "Cloudflare Workers (edge deployment)",
+    "backend": {
+      "runtime": "Cloudflare Worker",
+      "entry_point": "_worker.js",
+      "database": "Cloudflare D1 (SQLite-compatible serverless)",
+      "database_binding": "DEEDS_DB",
+      "authentication": "JWT tokens with HS256 signing",
+      "session_secret": "Environment variable (SESSION_SECRET)"
+    },
+    "frontend": {
+      "type": "Static HTML/CSS/JavaScript",
+      "directory": "public/",
+      "styling": ["Tailwind CSS (CDN)", "Custom CSS (styles.css)"],
+      "i18n": "Multi-language support (English, Haitian Creole)"
+    }
+  },
+  
+  "database_schema": {
+    "users": {
+      "columns": [
+        "id INTEGER PRIMARY KEY AUTOINCREMENT",
+        "name TEXT NOT NULL",
+        "email TEXT NOT NULL UNIQUE",
+        "password_hash TEXT NOT NULL (SHA-256)",
+        "role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin', 'moderator'))",
+        "is_admin INTEGER NOT NULL DEFAULT 0 CHECK (is_admin IN (0, 1)) -- legacy compatibility",
+        "credits INTEGER DEFAULT 0",
+        "sector TEXT",
+        "region TEXT",
+        "verification_status TEXT NOT NULL DEFAULT 'pending'",
+        "created_at TEXT NOT NULL DEFAULT (datetime('now'))"
+      ],
+      "description": "Stores user accounts with role-based access control"
+    },
+    "deeds": {
+      "columns": [
+        "id INTEGER PRIMARY KEY AUTOINCREMENT",
+        "user_id INTEGER NOT NULL REFERENCES users(id)",
+        "title TEXT NOT NULL",
+        "description TEXT",
+        "category TEXT DEFAULT 'general'",
+        "proof_url TEXT",
+        "impact TEXT",
+        "duration TEXT",
+        "status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'verified', 'rejected'))",
+        "credits INTEGER DEFAULT 0",
+        "verified_at TEXT",
+        "created_at TEXT NOT NULL DEFAULT (datetime('now'))"
+      ],
+      "description": "Stores deed submissions with verification status"
+    },
+    "recent_migrations": [
+      "0009_add_admin_flag.sql - Added is_admin column",
+      "0015_add_role_column.sql - Added role column, backfilled from is_admin"
+    ]
+  },
+  
+  "api_endpoints": {
+    "authentication": [
+      {
+        "method": "POST",
+        "path": "/api/auth/signup",
+        "description": "Register new user account",
+        "request_body": {
+          "name": "string (required)",
+          "email": "string (required, unique)",
+          "password": "string (required, min 8 chars)"
+        },
+        "response": {
+          "message": "Signup successful.",
+          "profile": {
+            "id": "number",
+            "name": "string",
+            "email": "string",
+            "role": "string (user|admin|moderator)",
+            "sessionToken": "JWT string"
+          }
+        }
+      },
+      {
+        "method": "POST",
+        "path": "/api/auth/login",
+        "description": "Authenticate user and get session token",
+        "request_body": {
+          "email": "string",
+          "password": "string"
+        },
+        "response": {
+          "message": "Welcome back, {name}!",
+          "profile": {
+            "id": "number",
+            "name": "string",
+            "email": "string",
+            "role": "string",
+            "credits": "number",
+            "completed": "number",
+            "sessionToken": "JWT string"
+          }
+        }
+      }
+    ],
+    "deeds": [
+      {
+        "method": "POST",
+        "path": "/api/deeds",
+        "description": "Submit a new deed for verification",
+        "authentication": "None (currently - security issue noted)",
+        "request_body": {
+          "user_id": "number",
+          "title": "string",
+          "proof_url": "string (optional)"
+        },
+        "response": {
+          "message": "Deed submitted for review.",
+          "success": true
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/api/deeds",
+        "description": "Get list of deeds with optional filters",
+        "query_params": {
+          "status": "string (optional: pending|verified)",
+          "user_id": "number (optional)"
+        },
+        "response": "Array of deed objects with user info"
+      },
+      {
+        "method": "POST",
+        "path": "/api/verify",
+        "description": "Verify a deed and award credits (admin only)",
+        "authentication": "Required - Bearer token with role='admin'",
+        "request_body": {
+          "deed_id": "number"
+        },
+        "response": {
+          "success": true,
+          "deed_id": "number"
+        },
+        "side_effects": [
+          "Updates deed status to 'verified'",
+          "Sets verified_at timestamp",
+          "Increments user credits by 1"
+        ]
+      }
+    ],
+    "public": [
+      {
+        "method": "GET",
+        "path": "/api/leaderboard",
+        "description": "Get top users ranked by credits and verified deeds",
+        "response": "Array of users with stats",
+        "query": "SELECT u.id, u.name, u.region, u.sector, u.credits, COUNT(d.id) AS total_deeds, COUNT(CASE WHEN d.status='verified' THEN 1 END) AS deeds_verified FROM users u LEFT JOIN deeds d ON u.id=d.user_id GROUP BY u.id ORDER BY u.credits DESC, deeds_verified DESC LIMIT 50"
+      },
+      {
+        "method": "GET",
+        "path": "/api/deed_catalog",
+        "description": "Get list of deed templates/categories",
+        "response": "Array of deed catalog items"
+      },
+      {
+        "method": "GET",
+        "path": "/api/profile",
+        "description": "Get user profile info",
+        "authentication": "Optional Bearer token",
+        "response": "User profile object"
+      }
+    ]
+  },
+  
+  "key_pages": {
+    "public": [
+      {
+        "file": "public/index.html",
+        "route": "/",
+        "title": "Landing Page",
+        "description": "Homepage with cultural branding, music player, and action buttons"
+      },
+      {
+        "file": "public/signup.html",
+        "route": "/signup.html",
+        "title": "Sign Up",
+        "description": "User registration with i18n support (EN/HT)"
+      },
+      {
+        "file": "public/login.html",
+        "route": "/login.html",
+        "title": "Login",
+        "description": "User authentication"
+      },
+      {
+        "file": "public/leaderboard.html",
+        "route": "/leaderboard.html",
+        "title": "Leaderboard",
+        "description": "Public ranking of users by credits and verified deeds"
+      },
+      {
+        "file": "public/dashboard.html",
+        "route": "/dashboard.html",
+        "title": "User Dashboard",
+        "description": "Protected page - user's personal deed history and stats",
+        "authentication": "Required"
+      },
+      {
+        "file": "public/submit.html",
+        "route": "/submit.html",
+        "title": "Submit Deed",
+        "description": "Protected page - form to submit new deeds",
+        "authentication": "Required"
+      }
+    ],
+    "admin": [
+      {
+        "file": "public/admin/dashboard.html",
+        "route": "/admin/dashboard.html",
+        "title": "Admin Dashboard",
+        "description": "Admin overview with stats: pending deeds, verified deeds, active users",
+        "authentication": "Required (admin role)",
+        "features": [
+          "Displays pending/verified/users counts",
+          "Shows recent deeds table",
+          "Quick link to verification queue"
+        ]
+      },
+      {
+        "file": "public/admin/verify.html",
+        "route": "/admin/verify.html",
+        "title": "Verification Queue",
+        "description": "Admin tool to verify pending deeds",
+        "authentication": "Required (admin role)",
+        "script": "public/admin/verify.js",
+        "features": [
+          "Lists all pending deeds in table",
+          "Shows deed title, submitter, proof link, timestamp",
+          "Verify button for each deed",
+          "Real-time updates after verification",
+          "i18n support"
+        ]
+      }
+    ]
+  },
+  
+  "authentication_flow": {
+    "jwt_structure": {
+      "algorithm": "HS256",
+      "header": {
+        "alg": "HS256",
+        "typ": "JWT"
+      },
+      "payload": {
+        "sub": "string (user ID)",
+        "role": "string (user|admin|moderator)",
+        "iat": "number (issued at timestamp)"
+      },
+      "signature": "HMAC-SHA256(base64url(header) + '.' + base64url(payload), SESSION_SECRET)"
+    },
+    "storage": {
+      "location": "localStorage['deeds.profile']",
+      "format": "JSON object with profile + sessionToken",
+      "global_reference": "window.deedsSessionProfile"
+    },
+    "authorization": {
+      "backend": {
+        "function": "requireRole(session, role)",
+        "description": "Checks JWT payload.role === required role",
+        "returns": "403 error response if unauthorized, null if authorized"
+      },
+      "frontend": {
+        "function": "normalizeStoredProfile(rawProfile)",
+        "description": "Derives isAdmin from role field",
+        "logic": "isAdmin = (role === 'admin')"
+      }
+    }
+  },
+  
+  "verification_workflow": {
+    "step_1": {
+      "actor": "User",
+      "action": "Submits deed via /api/deeds POST",
+      "result": "Deed created with status='pending'"
+    },
+    "step_2": {
+      "actor": "Admin",
+      "action": "Logs in and navigates to /admin/verify.html",
+      "result": "Sees table of pending deeds"
+    },
+    "step_3": {
+      "actor": "Admin",
+      "action": "Reviews proof_url and clicks Verify button",
+      "result": "Frontend calls /api/verify POST with JWT token"
+    },
+    "step_4": {
+      "actor": "Backend",
+      "action": "Validates admin role, updates deed status, awards credit",
+      "database_changes": [
+        "UPDATE deeds SET status='verified', verified_at=datetime('now') WHERE id=?",
+        "UPDATE users SET credits=credits+1 WHERE id=?"
+      ],
+      "result": "Returns success response"
+    },
+    "step_5": {
+      "actor": "System",
+      "action": "User now appears on leaderboard with updated credits",
+      "result": "Public recognition of contribution"
+    }
+  },
+  
+  "recent_fixes": {
+    "2025_11_06": [
+      {
+        "issue": "Broken image URL in index.html",
+        "file": "public/index.html:37",
+        "problem": "Image src split across two lines with newline character",
+        "fix": "Joined URL onto single line",
+        "status": "Fixed"
+      },
+      {
+        "issue": "CSS class mismatch in signup.html",
+        "file": "public/signup.html:70",
+        "problem": "Referenced .signup-email class that didn't exist in CSS",
+        "fix": "Added .signup-email to styles.css:372",
+        "status": "Fixed"
+      },
+      {
+        "issue": "Inconsistent admin role handling",
+        "problem": "Database used is_admin (0/1), backend used role column that didn't exist, frontend used both isAdmin and is_admin",
+        "solution": "Option B - Added role column to database",
+        "changes": [
+          "Created migration 0015_add_role_column.sql",
+          "Updated public/script.js normalizeStoredProfile() to use role as source of truth",
+          "Updated public/admin/verify.js normalizeProfile() to use role as source of truth",
+          "Backend already correct - no changes needed"
+        ],
+        "status": "Fixed and tested",
+        "test_results": [
+          "User signup creates role='user'",
+          "Admin login returns role='admin' in JWT",
+          "Admin can verify deeds",
+          "Regular users get 403 when trying to verify",
+          "Credits increment correctly",
+          "Leaderboard displays properly"
+        ]
+      }
+    ]
+  },
+  
+  "security_considerations": {
+    "current_issues": [
+      {
+        "severity": "HIGH",
+        "issue": "Missing authentication on /api/deeds POST",
+        "description": "Anyone can submit deeds without authentication",
+        "recommendation": "Add token verification to handleCreateDeed()"
+      },
+      {
+        "severity": "HIGH",
+        "issue": "Frontend-only admin route protection",
+        "description": "Admin pages protected by JavaScript, not backend enforcement",
+        "note": "Backend API properly protected with requireRole(), but static pages accessible if user knows URL"
+      },
+      {
+        "severity": "MEDIUM",
+        "issue": "Hardcoded session secret in wrangler.toml",
+        "description": "SESSION_SECRET exposed in version control",
+        "recommendation": "Use Cloudflare Secrets or environment variables"
+      },
+      {
+        "severity": "MEDIUM",
+        "issue": "No rate limiting",
+        "description": "API endpoints vulnerable to spam/DOS attacks"
+      },
+      {
+        "severity": "LOW",
+        "issue": "LocalStorage token storage",
+        "description": "Vulnerable to XSS attacks",
+        "note": "httpOnly cookies would be more secure"
+      }
+    ],
+    "implemented_protections": [
+      "Password hashing with SHA-256",
+      "JWT token signing with HMAC-SHA256",
+      "Role-based access control on /api/verify endpoint",
+      "Email uniqueness constraints",
+      "SQL injection protection via prepared statements",
+      "Input sanitization for text fields"
+    ]
+  },
+  
+  "file_structure": {
+    "root": [
+      "wrangler.toml - Cloudflare Workers configuration",
+      "_worker.js - Main backend worker with all API handlers",
+      "package.json - Dependencies and scripts"
+    ],
+    "directories": {
+      "public/": "Frontend static assets",
+      "public/admin/": "Admin-only pages and scripts",
+      "public/locales/": "i18n translation files (en.json, ht.json)",
+      "public/audio/": "Media assets (Groove and Grow.mp3)",
+      "migrations/": "D1 database schema migrations (0001-0015)",
+      "scripts/": "Deployment helper scripts",
+      "tests/": "Test files",
+      "docs/": "Documentation"
+    },
+    "key_files": {
+      "_worker.js": "Backend API - all endpoints and business logic",
+      "public/script.js": "Shared frontend JavaScript - auth, UI, utilities",
+      "public/styles.css": "Custom styles (428 lines)",
+      "public/admin/verify.js": "Admin verification queue logic (495 lines)",
+      "wrangler.toml": "Cloudflare deployment config"
+    }
+  },
+  
+  "development": {
+    "commands": {
+      "start": "npm start OR npx wrangler dev",
+      "deploy": "npm run deploy OR npx wrangler deploy",
+      "format": "npm run format (Prettier)",
+      "test": "npm test",
+      "db_migrate": "npx wrangler d1 execute deeds-app-db --local --file=migrations/XXXX.sql",
+      "db_query": "npx wrangler d1 execute deeds-app-db --local --command='SELECT ...'",
+      "db_remote": "Add --remote flag to commands for production database"
+    },
+    "local_server": "http://localhost:8787",
+    "database_location": ".wrangler/state/v3/d1 (local development)",
+    "current_branch": "main"
+  },
+  
+  "git_status": {
+    "modified_files": [
+      "public/index.html - Updated description text, fixed image URL",
+      "public/signup.html - CSS class updates",
+      "public/styles.css - Added signup form styles",
+      "public/script.js - Updated to use role field",
+      "public/admin/verify.js - Updated to use role field"
+    ],
+    "untracked_files": [
+      "migrations/0015_add_role_column.sql",
+      "project_context.json"
+    ],
+    "recent_commits": [
+      "f58e5bb - ui testing",
+      "7fc3139 - evaluation of current state",
+      "9ee262c - fix button",
+      "df72ab4 - added verifier button",
+      "efa52af - admin routes"
+    ]
+  },
+  
+  "next_steps_recommended": [
+    "Add authentication to POST /api/deeds endpoint",
+    "Move SESSION_SECRET to Cloudflare Secrets",
+    "Implement rate limiting on API endpoints",
+    "Add backend protection for admin static routes",
+    "Create admin promotion tool/script",
+    "Add httpOnly cookie option for tokens",
+    "Implement refresh token flow",
+    "Add deed rejection functionality",
+    "Add deed categories/templates system",
+    "Enhance leaderboard with filtering/sorting",
+    "Add user profile edit functionality",
+    "Implement notification system for verified deeds"
+  ],
+  
+  "context_for_llm": {
+    "current_state": "Application is fully functional with fixed admin role system",
+    "latest_work": "Standardized admin role handling by adding 'role' column to database and updating frontend to use it consistently",
+    "testing_completed": "Full verification workflow tested and working correctly",
+    "admin_credentials": {
+      "note": "Admin users must be manually promoted via database UPDATE",
+      "example": "UPDATE users SET role='admin', is_admin=1 WHERE email='admin@deeds.local'"
+    },
+    "assumptions": "Cloudflare Workers environment, D1 database available, SESSION_SECRET configured"
+  }
+}

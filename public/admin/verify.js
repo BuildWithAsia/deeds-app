@@ -29,12 +29,9 @@ function normalizeProfile(rawProfile) {
     return null;
   }
 
-  const adminFlag =
-    rawProfile.isAdmin != null
-      ? !!rawProfile.isAdmin
-      : rawProfile.is_admin != null
-        ? !!rawProfile.is_admin
-        : false;
+  // Use role field as the source of truth
+  const role = rawProfile.role || 'user';
+  const isAdmin = role === 'admin';
 
   const sessionToken =
     typeof rawProfile.sessionToken === "string" && rawProfile.sessionToken
@@ -45,8 +42,8 @@ function normalizeProfile(rawProfile) {
 
   return {
     ...rawProfile,
-    isAdmin: adminFlag,
-    is_admin: rawProfile.is_admin != null ? !!rawProfile.is_admin : adminFlag,
+    role,
+    isAdmin,
     sessionToken,
   };
 }
