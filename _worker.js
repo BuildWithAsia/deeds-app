@@ -203,13 +203,19 @@ async function handleCreateDeed(request, env) {
   const title = sanitizeText(body.title);
   const proof = normalizeUrl(body.proof_url);
   if (!userId || !title || !proof) return responseWithMessage("Missing deed data.", 400);
-  await db
-    .prepare(
-      "INSERT INTO deeds (user_id,title,description,impact,duration,status,created_at) VALUES (?1,?2,?3,?4,?5,'pending',datetime('now'))"
-    )
-    .bind(userId, title, body.description || "", body.impact || "", body.duration || "")
-    .run();
-  return responseWithMessage("Deed submitted for review.", 201);
+
+  try {
+    await db
+      .prepare(
+        "INSERT INTO deeds (user_id,title,description,proof_url,impact,duration,status,created_at) VALUES (?1,?2,?3,?4,?5,?6,'pending',datetime('now'))"
+      )
+      .bind(userId, title, body.description || "", proof, body.impact || "", body.duration || "")
+      .run();
+    return responseWithMessage("Deed submitted for review.", 201, { success: true });
+  } catch (error) {
+    console.error("Database error creating deed:", error);
+    return responseWithMessage(`Database error: ${error.message}`, 500);
+  }
 }
 
 async function handleVerifyDeed(request, env) {
