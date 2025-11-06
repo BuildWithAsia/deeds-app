@@ -268,6 +268,65 @@ async function handleVerifyDeed(request, env) {
   return Response.json({ success: true, deed_id: deedId });
 }
 
+async function handleGetDeeds(request, env) {
+  const db = env.DEEDS_DB;
+  const url = new URL(request.url);
+  const status = url.searchParams.get("status");
+  const userId = url.searchParams.get("user_id");
+
+  // Build dynamic query based on filters
+  let query = `SELECT d.id, d.user_id, d.title, d.description, d.category, d.proof_url,
+    d.impact, d.duration, d.status, d.credits, d.verified_at, d.created_at,
+    u.name as user_name, u.email as user_email
+    FROM deeds d
+    LEFT JOIN users u ON d.user_id = u.id
+    WHERE 1=1`;
+
+  const params = [];
+
+  if (status && status !== "all") {
+    query += ` AND d.status = ?`;
+    params.push(status);
+  }
+
+  if (userId) {
+    query += ` AND d.user_id = ?`;
+    params.push(Number(userId));
+  }
+
+  query += ` ORDER BY d.created_at DESC LIMIT 100`;
+
+  try {
+    let stmt = db.prepare(query);
+    params.forEach((param) => {
+      stmt = stmt.bind(param);
+    });
+
+    const res = await stmt.all();
+    const deeds = (res.results || []).map((d) => ({
+      id: d.id,
+      user_id: d.user_id,
+      user_name: d.user_name || "Unknown",
+      user_email: d.user_email || "",
+      title: sanitizeText(d.title),
+      description: sanitizeText(d.description),
+      category: d.category || "general",
+      proof_url: d.proof_url,
+      impact: d.impact || "",
+      duration: d.duration || "",
+      status: d.status,
+      credits: Number(d.credits ?? 0),
+      verified_at: d.verified_at,
+      created_at: d.created_at,
+    }));
+
+    return Response.json(deeds);
+  } catch (error) {
+    console.error("Error fetching deeds:", error);
+    return responseWithMessage("Failed to fetch deeds.", 500);
+  }
+}
+
 // ========== OTHER ROUTES ==========
 
 async function handleLeaderboard(env) {
@@ -349,6 +408,8 @@ export default {
     // DEEDS
     if (path === "/api/deeds" && method === "POST")
       return handleCreateDeed(request, env);
+    if (path === "/api/deeds" && method === "GET")
+      return handleGetDeeds(request, env);
     if (path === "/api/verify" && method === "POST")
       return handleVerifyDeed(request, env);
 
