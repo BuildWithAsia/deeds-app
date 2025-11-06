@@ -2,6 +2,8 @@
 
 The Deeds App is an MVP that helps neighbors document good deeds, verify contributions, and celebrate impact on a shared leaderboard. It is built with a Cloudflare Worker backend and a Tailwind-powered frontend.
 
+**Live Production**: https://deeds-app.asialakaygrady-6d4.workers.dev
+
 ## Key links
 - [Sprint tracker and daily checklist](Sprint_README.md)
 - [Project documentation overview](docs/creadme.md)
