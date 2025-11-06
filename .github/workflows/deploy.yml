@@ -44,19 +44,6 @@ jobs:
             exit 1
           fi
 
-      - name: Run database migrations
-        continue-on-error: true
-        run: |
-          echo "Running migrations (errors will be ignored if already applied)..."
-          npx wrangler d1 execute deeds-app-db --remote --file=migrations/0010_add_deed_submission_fields.sql 2>&1 || true
-          npx wrangler d1 execute deeds-app-db --remote --file=migrations/0012_create_deed_catalog.sql 2>&1 || true
-          npx wrangler d1 execute deeds-app-db --remote --file=migrations/0013_add_deeds_impact_duration.sql 2>&1 || true
-          npx wrangler d1 execute deeds-app-db --remote --file=migrations/0014_fix_autoincrement.sql 2>&1 || true
-          echo "Migrations completed (some may have been skipped if already applied)"
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-
       - name: Publish to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:
