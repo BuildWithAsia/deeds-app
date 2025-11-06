@@ -209,7 +209,7 @@ async function handleCreateDeed(request, env) {
     )
     .bind(userId, title, body.description || "", body.impact || "", body.duration || "")
     .run();
-  return responseWithMessage("Deed submitted for review.", 201);
+  return responseWithMessage("Deed submitted for review.", 201, { success: true });
 }
 
 async function handleVerifyDeed(request, env) {

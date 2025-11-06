@@ -179,12 +179,25 @@
       const proof_url_input = document.getElementById("proof_url").value.trim();
       const proof_url = proof_url_input || uploadedFileUrl || "";
       const description = document.getElementById("description").value.trim();
-      const user_id = Number(localStorage.getItem("userId"));
-      const token = localStorage.getItem("sessionToken");
+
+      // Get profile from localStorage
+      const profileData = localStorage.getItem("deeds.profile");
+      if (!profileData) return alert("⚠️ You're not logged in — please sign in first.");
+
+      const profile = JSON.parse(profileData);
+      const user_id = profile.id;
+      const token = profile.sessionToken;
 
       if (!user_id || !token) return alert("⚠️ You're not logged in — please sign in first.");
 
-      const payload = { user_id, title: selectedDeed.title, description, proof_url };
+      const payload = {
+        user_id,
+        title: selectedDeed.title,
+        description,
+        proof_url,
+        impact: selectedDeed.impact || "",
+        duration: selectedDeed.duration || ""
+      };
       console.log("📤 Payload:", payload);
 
       const response = await fetch("/api/deeds", {
@@ -193,12 +206,7 @@
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          user_id,
-          title: selectedDeed.title,
-          description,
-          proof_url,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const result = await response.json();
