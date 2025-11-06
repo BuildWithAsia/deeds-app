@@ -228,7 +228,21 @@ async function handleCreateDeed(request, env) {
       return responseWithMessage("Deed submitted for review.", 201, { success: true });
     } catch (fallbackError) {
       console.error("Database error creating deed (base columns):", fallbackError);
-      return responseWithMessage(`Database error: ${fallbackError.message}. You may need to run migrations 0010 and 0013.`, 500);
+
+      // Last resort: try with explicit NULL for id to force autoincrement
+      try {
+        console.log("Final attempt: INSERT with explicit NULL id...");
+        await db
+          .prepare(
+            "INSERT INTO deeds (id,user_id,title,proof_url,status,created_at) VALUES (NULL,?1,?2,?3,'pending',datetime('now'))"
+          )
+          .bind(userId, title, proof)
+          .run();
+        return responseWithMessage("Deed submitted for review.", 201, { success: true });
+      } catch (finalError) {
+        console.error("All INSERT attempts failed:", finalError);
+        return responseWithMessage(`Database error: ${finalError.message}. Please contact support - database schema may need repair.`, 500);
+      }
     }
   }
 }
