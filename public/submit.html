@@ -174,21 +174,47 @@
 
     async function submitDeed(event) {
       event.preventDefault();
-      if (!selectedDeed) return alert("Please select a deed.");
+      console.log("🚀 Submit button clicked");
 
-      const proof_url_input = document.getElementById("proof_url").value.trim();
-      const proof_url = proof_url_input || uploadedFileUrl || "";
+      if (!selectedDeed) {
+        console.log("❌ No deed selected");
+        return alert("Please select a deed.");
+      }
+      console.log("✅ Selected deed:", selectedDeed);
+
+      const proof_url = document.getElementById("proof_url").value.trim();
       const description = document.getElementById("description").value.trim();
+
+      if (!proof_url) {
+        console.log("❌ No proof URL provided");
+        return alert("⚠️ Please provide a proof link.");
+      }
+      console.log("✅ Proof URL:", proof_url);
 
       // Get profile from localStorage
       const profileData = localStorage.getItem("deeds.profile");
-      if (!profileData) return alert("⚠️ You're not logged in — please sign in first.");
+      if (!profileData) {
+        console.log("❌ No profile in localStorage");
+        return alert("⚠️ You're not logged in — please sign in first.");
+      }
+      console.log("✅ Profile data found");
 
-      const profile = JSON.parse(profileData);
+      let profile;
+      try {
+        profile = JSON.parse(profileData);
+      } catch (e) {
+        console.error("❌ Error parsing profile:", e);
+        return alert("⚠️ Session data corrupted. Please log in again.");
+      }
+
       const user_id = profile.id;
       const token = profile.sessionToken;
+      console.log("✅ User ID:", user_id, "Token exists:", !!token);
 
-      if (!user_id || !token) return alert("⚠️ You're not logged in — please sign in first.");
+      if (!user_id || !token) {
+        console.log("❌ Missing user_id or token");
+        return alert("⚠️ You're not logged in — please sign in first.");
+      }
 
       const payload = {
         user_id,
@@ -200,25 +226,39 @@
       };
       console.log("📤 Payload:", payload);
 
-      const response = await fetch("/api/deeds", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
+      try {
+        const response = await fetch("/api/deeds", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        });
+        console.log("📡 Response status:", response.status);
 
-      const result = await response.json();
-      console.log("📥 Server Response:", result);
+        let result;
+        try {
+          result = await response.json();
+          console.log("📥 Server Response:", result);
+        } catch (e) {
+          console.error("❌ Error parsing response:", e);
+          return alert("⚠️ Server returned invalid response.");
+        }
 
-      if (response.ok && result.success) {
-        alert("✅ Deed submitted successfully! Awaiting verification.");
-        document.getElementById("deed-form").reset();
-        document.querySelectorAll(".deed-card").forEach(c => c.classList.remove("active"));
-        selectedDeed = null;
-      } else {
-        alert("⚠️ " + (result.message || "Something went wrong."));
+        if (response.ok && result.success) {
+          console.log("✅ Submission successful!");
+          alert("✅ Deed submitted successfully! Awaiting verification.");
+          document.getElementById("deed-form").reset();
+          document.querySelectorAll(".deed-card").forEach(c => c.classList.remove("active"));
+          selectedDeed = null;
+        } else {
+          console.log("❌ Submission failed:", result.message);
+          alert("⚠️ " + (result.message || "Something went wrong."));
+        }
+      } catch (error) {
+        console.error("❌ Network error:", error);
+        alert("⚠️ Could not reach the server. Please check your connection.");
       }
     }
 
