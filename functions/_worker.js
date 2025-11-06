@@ -203,13 +203,19 @@ async function handleCreateDeed(request, env) {
   const title = sanitizeText(body.title);
   const proof = normalizeUrl(body.proof_url);
   if (!userId || !title || !proof) return responseWithMessage("Missing deed data.", 400);
-  await db
-    .prepare(
-      "INSERT INTO deeds (user_id,title,description,impact,duration,status,created_at) VALUES (?1,?2,?3,?4,?5,'pending',datetime('now'))"
-    )
-    .bind(userId, title, body.description || "", body.impact || "", body.duration || "")
-    .run();
-  return responseWithMessage("Deed submitted for review.", 201, { success: true });
+
+  try {
+    await db
+      .prepare(
+        "INSERT INTO deeds (user_id,title,description,impact,duration,status,created_at) VALUES (?1,?2,?3,?4,?5,'pending',datetime('now'))"
+      )
+      .bind(userId, title, body.description || "", body.impact || "", body.duration || "")
+      .run();
+    return responseWithMessage("Deed submitted for review.", 201, { success: true });
+  } catch (error) {
+    console.error("Database error creating deed:", error);
+    return responseWithMessage(`Database error: ${error.message}`, 500);
+  }
 }
 
 async function handleVerifyDeed(request, env) {
@@ -291,41 +297,49 @@ async function handleProfile(request, env) {
 
 export default {
   async fetch(request, env) {
-    const url = new URL(request.url);
-    const path = url.pathname;
-    const method = request.method;
+    try {
+      const url = new URL(request.url);
+      const path = url.pathname;
+      const method = request.method;
 
-    if (method === "OPTIONS")
-      return new Response(null, {
-        status: 204,
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        },
-      });
+      if (method === "OPTIONS")
+        return new Response(null, {
+          status: 204,
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+          },
+        });
 
-    // AUTH
-    if (path === "/api/auth/signup" && method === "POST")
-      return handleSignup(request, env);
-    if (path === "/api/auth/login" && method === "POST")
-      return handleLogin(request, env);
+      // AUTH
+      if (path === "/api/auth/signup" && method === "POST")
+        return handleSignup(request, env);
+      if (path === "/api/auth/login" && method === "POST")
+        return handleLogin(request, env);
 
-    // DEEDS
-    if (path === "/api/deeds" && method === "POST")
-      return handleCreateDeed(request, env);
-    if (path === "/api/verify" && method === "POST")
-      return handleVerifyDeed(request, env);
+      // DEEDS
+      if (path === "/api/deeds" && method === "POST")
+        return handleCreateDeed(request, env);
+      if (path === "/api/verify" && method === "POST")
+        return handleVerifyDeed(request, env);
 
-    // CATALOG / LEADERBOARD / PROFILE
-    if (path === "/api/deed_catalog" && method === "GET")
-      return handleDeedCatalog(env);
-    if (path === "/api/leaderboard" && method === "GET")
-      return handleLeaderboard(env);
-    if (path === "/api/profile" && method === "GET")
-      return handleProfile(request, env);
+      // CATALOG / LEADERBOARD / PROFILE
+      if (path === "/api/deed_catalog" && method === "GET")
+        return handleDeedCatalog(env);
+      if (path === "/api/leaderboard" && method === "GET")
+        return handleLeaderboard(env);
+      if (path === "/api/profile" && method === "GET")
+        return handleProfile(request, env);
 
-    // fallback
-    return new Response("Not found", { status: 404 });
+      // fallback
+      return new Response("Not found", { status: 404 });
+    } catch (error) {
+      console.error("Unhandled error in fetch handler:", error);
+      return Response.json(
+        { message: "Internal server error", error: error.message },
+        { status: 500 }
+      );
+    }
   },
 };
