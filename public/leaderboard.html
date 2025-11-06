@@ -31,7 +31,7 @@
       container.innerHTML = data.map((u, i) => `
         <li class="p-4 flex justify-between hover:bg-slate-700 transition">
           <span class="font-semibold">${i + 1}. ${u.name || "Neighbor"}</span>
-          <span>${u.credits} credits</span>
+          <span>${u.credits} credits</span> <span>${u.verified} deeds</span>
         </li>
       `).join("");
     } catch (err) {

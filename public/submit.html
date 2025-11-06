@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Submit a Deed | Deeds App</title>
+  <title>Submit Your Deed | Deeds App</title>
   <style>
     :root {
       --navy: #0A143C;
@@ -13,88 +13,126 @@
     }
 
     body {
-      background-color: var(--navy);
-      color: var(--sand);
-      font-family: "Inter", system-ui, sans-serif;
       margin: 0;
-      padding: 2rem;
+      font-family: "Inter", system-ui, sans-serif;
+      background: radial-gradient(circle at top, #0a143c 0%, #05091f 100%);
+      color: var(--sand);
       display: flex;
       justify-content: center;
       align-items: flex-start;
       min-height: 100vh;
+      padding: 2rem 1rem;
     }
 
     main {
-      background: rgba(239, 231, 216, 0.08);
-      border: 1px solid rgba(239, 231, 216, 0.15);
-      border-radius: 1rem;
-      max-width: 500px;
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.8), rgba(10, 20, 60, 0.6));
+      border-radius: 1.5rem;
+      max-width: 600px;
       width: 100%;
-      padding: 2rem 2.5rem;
-      box-shadow: 0 20px 40px -10px rgba(0, 183, 179, 0.4);
+      padding: 2.5rem 2rem;
+      box-shadow: 0 30px 60px -15px rgba(0, 183, 179, 0.4);
+      backdrop-filter: blur(12px);
     }
 
     h1 {
       text-align: center;
-      color: var(--teal);
-      margin-bottom: 1.5rem;
-      font-size: 1.75rem;
+      font-size: 1.8rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, var(--magenta), var(--teal));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 2rem;
     }
 
-    fieldset {
-      border: none;
-      margin: 1.5rem 0;
-      padding: 0;
+    .deed-grid {
+      display: grid;
+      gap: 1rem;
+      margin-bottom: 2rem;
     }
 
-    label {
+    .deed-card {
+      border: 1px solid rgba(0, 183, 179, 0.3);
+      background: rgba(0, 183, 179, 0.08);
+      border-radius: 1rem;
+      padding: 1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .deed-card:hover {
+      border-color: var(--teal);
+      box-shadow: 0 0 18px -6px var(--teal);
+      background: rgba(0, 183, 179, 0.15);
+    }
+
+    .deed-card.active {
+      border-color: var(--magenta);
+      box-shadow: 0 0 25px -5px var(--magenta);
+      background: rgba(255, 30, 138, 0.12);
+    }
+
+    .deed-card strong {
+      font-size: 1rem;
+      color: var(--sand);
+    }
+
+    .deed-card small {
       display: block;
-      margin-bottom: 0.25rem;
-      font-weight: 600;
+      font-size: 0.85rem;
+      color: rgba(239, 231, 216, 0.75);
     }
 
     input[type="url"],
-    textarea {
+    textarea,
+    input[type="file"] {
       width: 100%;
-      padding: 0.7rem;
-      border: 1px solid rgba(239, 231, 216, 0.3);
+      padding: 0.8rem;
       border-radius: 0.5rem;
+      border: 1px solid rgba(239, 231, 216, 0.2);
+      background: rgba(239, 231, 216, 0.1);
+      color: var(--sand);
       font-size: 1rem;
-      background: var(--sand);
-      color: var(--navy);
+      margin-bottom: 1rem;
+      transition: border-color 0.2s ease;
     }
 
-    input[type="radio"] {
-      accent-color: var(--magenta);
-      transform: scale(1.2);
-      margin-right: 0.5rem;
+    input[type="url"]:focus,
+    textarea:focus,
+    input[type="file"]:focus {
+      outline: none;
+      border-color: var(--teal);
+      box-shadow: 0 0 0 2px rgba(0, 183, 179, 0.3);
     }
 
-    .deed-option {
-      background: rgba(0, 183, 179, 0.08);
+    .file-preview {
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    .file-preview img,
+    .file-preview video {
+      max-width: 100%;
       border-radius: 0.75rem;
-      padding: 0.75rem 1rem;
-      margin-bottom: 0.75rem;
-      border: 1px solid rgba(0, 183, 179, 0.2);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
     }
 
     button {
-      background-color: var(--teal);
-      color: var(--navy);
+      background: linear-gradient(90deg, var(--magenta), var(--teal));
+      color: var(--sand);
       border: none;
       border-radius: 999px;
-      padding: 0.8rem 1.5rem;
+      padding: 0.9rem 1.5rem;
       font-size: 1rem;
       font-weight: 700;
       cursor: pointer;
       width: 100%;
-      margin-top: 1.25rem;
-      transition: background-color 0.2s ease;
+      box-shadow: 0 10px 25px -10px rgba(255, 30, 138, 0.6);
+      transition: transform 0.2s ease, box-shadow 0.3s ease;
     }
 
     button:hover {
-      background-color: var(--magenta);
-      color: var(--sand);
+      transform: translateY(-2px);
+      box-shadow: 0 14px 30px -8px rgba(0, 183, 179, 0.7);
     }
 
     .footer-note {
@@ -107,55 +145,95 @@
 </head>
 <body>
   <main>
-    <h1>Submit a Deed</h1>
+    <h1>Submit Your Deed</h1>
     <form id="deed-form" onsubmit="submitDeed(event)">
-      <fieldset id="deed-options">
-        <legend style="margin-bottom:0.5rem;">Choose a deed</legend>
-        <!-- Deed radio options will load here -->
-      </fieldset>
+      <div id="deed-grid" class="deed-grid"></div>
 
-      <label for="proof_url">Proof link</label>
-      <input type="url" id="proof_url" placeholder="https://..." required />
+      <label for="proof_file">Upload Proof (image or video)</label>
+      <input type="file" id="proof_file" accept="image/*,video/*" />
+      <div id="file-preview" class="file-preview"></div>
+
+      <label for="proof_url">Or proof link (optional)</label>
+      <input type="url" id="proof_url" placeholder="https://..." />
 
       <label for="description">Reflection (optional)</label>
-      <textarea id="description" rows="3" placeholder="What did you do? What did you learn?"></textarea>
+      <textarea id="description" rows="3" placeholder="What did this deed mean to you?"></textarea>
 
-      <button type="submit">Submit Deed</button>
+      <button type="submit">Send for Verification</button>
     </form>
-    <p class="footer-note">Every deed counts. 🌱</p>
+    <p class="footer-note">Rooted in rhythm, powered by every deed.</p>
   </main>
 
   <script>
-    async function loadDeeds() {
-      const res = await fetch("/api/deed_catalog");
-      const deeds = await res.json();
-      const container = document.getElementById("deed-options");
+    let selectedDeed = null;
+    let uploadedFileUrl = null;
 
-      deeds.forEach((deed) => {
-        const div = document.createElement("div");
-        div.className = "deed-option";
-        div.innerHTML = `
-          <label>
-            <input type="radio" name="deed" value="${deed.id}" required>
+    async function loadDeeds() {
+      try {
+        const res = await fetch("/api/deed_catalog");
+        const deeds = await res.json();
+        const container = document.getElementById("deed-grid");
+
+        deeds.forEach((deed) => {
+          const card = document.createElement("div");
+          card.className = "deed-card";
+          card.innerHTML = `
             <strong>${deed.title}</strong>
-            <br><small>${deed.description}</small><br>
+            <small>${deed.description}</small>
             <small style="color:var(--teal);">${deed.impact} • ${deed.duration}</small>
-          </label>
-        `;
-        container.appendChild(div);
-      });
+          `;
+          card.addEventListener("click", () => {
+            document.querySelectorAll(".deed-card").forEach(c => c.classList.remove("active"));
+            card.classList.add("active");
+            selectedDeed = { id: deed.id, title: deed.title };
+            console.log("✅ Selected deed:", selectedDeed);
+          });
+          container.appendChild(card);
+        });
+      } catch (err) {
+        console.error("Failed to load deeds:", err);
+      }
     }
+
+    document.getElementById("proof_file").addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      const preview = document.getElementById("file-preview");
+      preview.innerHTML = "";
+      if (file) {
+        const url = URL.createObjectURL(file);
+        uploadedFileUrl = url; // for now, use local URL
+        preview.style.display = "block";
+        if (file.type.startsWith("video/")) {
+          const vid = document.createElement("video");
+          vid.src = url;
+          vid.controls = true;
+          preview.appendChild(vid);
+        } else {
+          const img = document.createElement("img");
+          img.src = url;
+          preview.appendChild(img);
+        }
+      } else {
+        preview.style.display = "none";
+        uploadedFileUrl = null;
+      }
+    });
 
     async function submitDeed(event) {
       event.preventDefault();
 
-      const selected = document.querySelector('input[name="deed"]:checked');
-      if (!selected) return alert("Please choose a deed.");
+      if (!selectedDeed) return alert("⚠️ Please select a deed first.");
 
-      const proof_url = document.getElementById("proof_url").value.trim();
+      const proof_url_input = document.getElementById("proof_url").value.trim();
+      const proof_url = proof_url_input || uploadedFileUrl || "";
       const description = document.getElementById("description").value.trim();
       const user_id = Number(localStorage.getItem("userId"));
       const token = localStorage.getItem("sessionToken");
+
+      if (!user_id || !token) return alert("⚠️ You're not logged in — please sign in first.");
+
+      const payload = { user_id, title: selectedDeed.title, description, proof_url };
+      console.log("📤 Payload:", payload);
 
       const response = await fetch("/api/deeds", {
         method: "POST",
@@ -163,18 +241,19 @@
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          user_id,
-          title: selected.nextSibling.textContent.trim(),
-          description,
-          proof_url,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const result = await response.json();
+      console.log("📥 Server Response:", result);
+
       if (response.ok && result.success) {
         alert("✅ Deed submitted successfully! Awaiting verification.");
         document.getElementById("deed-form").reset();
+        selectedDeed = null;
+        uploadedFileUrl = null;
+        document.querySelectorAll(".deed-card").forEach(c => c.classList.remove("active"));
+        document.getElementById("file-preview").style.display = "none";
       } else {
         alert("⚠️ " + (result.message || "Something went wrong."));
       }
