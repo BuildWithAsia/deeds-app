@@ -365,7 +365,12 @@ const PROTECTED_PAGES = new Set([
   "submit.html",
   "leaderboard.html",
   "profile.html",
+]);
+
+const ADMIN_PAGES = new Set([
   "verify.html",
+  "admin/verify.html",
+  "admin/dashboard.html",
 ]);
 
 function isProfileExpired(profile) {
@@ -392,15 +397,22 @@ function hydrateUI(profile) {
 
 let currentPage = "";
 if (typeof window !== "undefined") {
-  currentPage = window.location.pathname.split("/").pop();
+  const pathname = window.location.pathname;
+  currentPage = pathname.split("/").pop();
+  const fullPath = pathname.startsWith('/') ? pathname.slice(1) : pathname;
 
-  if (PROTECTED_PAGES.has(currentPage)) {
+  const isProtected = PROTECTED_PAGES.has(currentPage);
+  const isAdmin = ADMIN_PAGES.has(currentPage) || ADMIN_PAGES.has(fullPath) || pathname.includes('/admin/');
+
+  if (isProtected || isAdmin) {
     const profile = getProfile();
     if (!profile || isProfileExpired(profile) || !profile?.sessionToken) {
       clearProfile();
-      window.location.href = "login.html";
-    } else if (currentPage === "verify.html" && !profile.isAdmin) {
-      window.location.href = "dashboard.html";
+      window.location.href = "/login.html";
+    } else if (isAdmin && !profile.isAdmin) {
+      // Non-admin trying to access admin pages
+      alert("Access denied. Administrator privileges required.");
+      window.location.href = "/dashboard.html";
     } else {
       setSessionProfile(profile);
       if (document.readyState === "loading") {
@@ -750,8 +762,13 @@ function attachAuthForms() {
 
         setMessage(messageElement, result?.message || "Success!", "success");
         setTimeout(() => {
-          const redirectTarget =
-            mode === "signup" ? "choose.html" : "dashboard.html";
+          let redirectTarget = "dashboard.html";
+          if (mode === "signup") {
+            redirectTarget = "choose.html";
+          } else if (mode === "login" && result?.profile?.isAdmin) {
+            // Redirect admins to admin dashboard
+            redirectTarget = "/admin/dashboard.html";
+          }
           window.location.href = redirectTarget;
         }, 400);
       } catch (error) {
