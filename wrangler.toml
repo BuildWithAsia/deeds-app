@@ -4,8 +4,9 @@ compatibility_date = "2023-10-23"
 
 [vars]
 DEMO_MODE_ENABLED = "false"
-SESSION_SECRET = "7627942201"
 
+
+SESSION_SECRET = "7627942201"
 
 
 [env.demo]
