@@ -44,6 +44,18 @@ jobs:
             exit 1
           fi
 
+      - name: Run database migrations
+        if: ${{ secrets.CF_API_TOKEN && secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          echo "Running migration 0012: Create deed_catalog table..."
+          npx wrangler d1 execute deeds-app-db --remote --file=migrations/0012_create_deed_catalog.sql || echo "Migration 0012 may already be applied"
+
+          echo "Running migration 0013: Add impact and duration columns..."
+          npx wrangler d1 execute deeds-app-db --remote --file=migrations/0013_add_deeds_impact_duration.sql || echo "Migration 0013 may already be applied"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
       - name: Publish to Cloudflare Workers
         if: ${{ secrets.CF_API_TOKEN && secrets.CLOUDFLARE_ACCOUNT_ID }}
         uses: cloudflare/wrangler-action@v3
