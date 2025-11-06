@@ -208,12 +208,24 @@ async function handleLogin(request, env) {
 
 async function handleCreateDeed(request, env) {
   const db = env.DEEDS_DB;
+
+  // Authentication required
+  const auth = request.headers.get("authorization") || "";
+  const token = (auth.match(/^Bearer\s+(.+)$/i) || [])[1];
+  const session = await verifySessionToken(token, resolveSessionSecret(env));
+  if (!session) return responseWithMessage("Authentication required.", 401);
+
   const body = await parseJsonBody(request);
   if (!db || !body) return responseWithMessage("Invalid request.", 400);
   const userId = Number(body.user_id);
   const title = sanitizeText(body.title);
   const proof = normalizeUrl(body.proof_url);
   if (!userId || !title || !proof) return responseWithMessage("Missing deed data.", 400);
+
+  // Verify user can only submit deeds for themselves
+  if (userId !== session.userId) {
+    return responseWithMessage("Cannot submit deeds for other users.", 403);
+  }
 
   try {
     // First, try with all columns (if migrations 0010 and 0013 have been run)
@@ -281,9 +293,23 @@ async function handleVerifyDeed(request, env) {
 
 async function handleGetDeeds(request, env) {
   const db = env.DEEDS_DB;
+
+  // Authentication required
+  const auth = request.headers.get("authorization") || "";
+  const token = (auth.match(/^Bearer\s+(.+)$/i) || [])[1];
+  const session = await verifySessionToken(token, resolveSessionSecret(env));
+  if (!session) return responseWithMessage("Authentication required.", 401);
+
   const url = new URL(request.url);
   const status = url.searchParams.get("status");
   const userId = url.searchParams.get("user_id");
+
+  // Regular users can only view their own deeds, admins can view all
+  if (session.role !== "admin") {
+    if (userId && Number(userId) !== session.userId) {
+      return responseWithMessage("Cannot view other users' deeds.", 403);
+    }
+  }
 
   // Build dynamic query based on filters
   let query = `SELECT d.id, d.user_id, d.title, d.description, d.category, d.proof_url,

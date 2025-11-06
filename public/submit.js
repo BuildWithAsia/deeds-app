@@ -158,7 +158,10 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const res = await fetch("/api/deeds", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${profile.sessionToken}`,
+        },
         body: JSON.stringify(payload),
       });
 
