@@ -62,8 +62,3 @@ jobs:
           apiToken: ${{ secrets.CF_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: deploy --config wrangler.toml
-
-      - name: Skip deployment (missing Cloudflare credentials)
-        if: ${{ !secrets.CF_API_TOKEN || !secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          echo "::warning::Skipping deploy because CF_API_TOKEN and/or CLOUDFLARE_ACCOUNT_ID secrets are not configured."
