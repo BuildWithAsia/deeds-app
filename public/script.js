@@ -762,8 +762,8 @@ function attachAuthForms() {
           if (mode === "signup") {
             redirectTarget = "choose.html";
           } else if (mode === "login" && result?.profile?.isAdmin) {
-            // Redirect admins to admin dashboard
-            redirectTarget = "/admin/dashboard.html";
+            // Redirect admins to verify page
+            redirectTarget = "/admin/verify.html";
           }
           window.location.href = redirectTarget;
         }, 400);
