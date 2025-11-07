@@ -298,6 +298,7 @@ async function handleGetDeeds(request, env) {
   const auth = request.headers.get("authorization") || "";
   const token = (auth.match(/^Bearer\s+(.+)$/i) || [])[1];
   const session = await verifySessionToken(token, resolveSessionSecret(env));
+  console.log("GET /api/deeds - session:", session);
   if (!session) return responseWithMessage("Authentication required.", 401);
 
   const url = new URL(request.url);
@@ -336,6 +337,10 @@ async function handleGetDeeds(request, env) {
 
   query += ` ORDER BY d.created_at DESC LIMIT 100`;
 
+  console.log("GET /api/deeds - query:", query);
+  console.log("GET /api/deeds - params:", params);
+  console.log("GET /api/deeds - role:", session.role, "userId filter:", userId);
+
   try {
     let stmt = db.prepare(query);
     params.forEach((param) => {
@@ -343,6 +348,7 @@ async function handleGetDeeds(request, env) {
     });
 
     const res = await stmt.all();
+    console.log("GET /api/deeds - results count:", res.results?.length || 0);
     const deeds = (res.results || []).map((d) => ({
       id: d.id,
       user_id: d.user_id,
