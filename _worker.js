@@ -302,13 +302,16 @@ async function handleGetDeeds(request, env) {
 
   const url = new URL(request.url);
   const status = url.searchParams.get("status");
-  const userId = url.searchParams.get("user_id");
+  let userId = url.searchParams.get("user_id");
 
   // Regular users can only view their own deeds, admins can view all
   if (session.role !== "admin") {
+    // Non-admins can only see their own deeds
     if (userId && Number(userId) !== session.userId) {
       return responseWithMessage("Cannot view other users' deeds.", 403);
     }
+    // Force filter to their own deeds if no userId specified
+    userId = String(session.userId);
   }
 
   // Build dynamic query based on filters
