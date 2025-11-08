@@ -1,3 +1,86 @@
+// ========== SERVICE WORKER REGISTRATION ==========
+// Register service worker for PWA functionality
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then((registration) => {
+        console.log('[PWA] Service Worker registered successfully:', registration.scope);
+
+        // Check for updates periodically
+        setInterval(() => {
+          registration.update();
+        }, 60000); // Check every minute
+
+        // Handle service worker updates
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // New service worker available, prompt user to refresh
+              if (confirm('A new version of Deeds App is available. Reload to update?')) {
+                newWorker.postMessage({ type: 'SKIP_WAITING' });
+                window.location.reload();
+              }
+            }
+          });
+        });
+      })
+      .catch((error) => {
+        console.error('[PWA] Service Worker registration failed:', error);
+      });
+
+    // Handle service worker controller change
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        refreshing = true;
+        window.location.reload();
+      }
+    });
+  });
+}
+
+// ========== INSTALL PROMPT ==========
+// Handle PWA install prompt
+let deferredInstallPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  // Prevent the mini-infobar from appearing on mobile
+  e.preventDefault();
+  // Stash the event so it can be triggered later
+  deferredInstallPrompt = e;
+  console.log('[PWA] Install prompt available');
+
+  // Optionally show install button
+  showInstallPromotion();
+});
+
+window.addEventListener('appinstalled', () => {
+  console.log('[PWA] App installed successfully');
+  deferredInstallPrompt = null;
+});
+
+function showInstallPromotion() {
+  // Check if we should show the install button
+  const installButton = document.getElementById('pwa-install-button');
+  if (installButton && deferredInstallPrompt) {
+    installButton.style.display = 'block';
+    installButton.addEventListener('click', async () => {
+      if (!deferredInstallPrompt) return;
+
+      deferredInstallPrompt.prompt();
+      const { outcome } = await deferredInstallPrompt.userChoice;
+      console.log('[PWA] User choice:', outcome);
+
+      if (outcome === 'accepted') {
+        installButton.style.display = 'none';
+      }
+      deferredInstallPrompt = null;
+    });
+  }
+}
+
+// ========== TRANSLATIONS & LANGUAGE ==========
 const SUPPORTED_LANGUAGES = ["en", "ht"];
 const DEFAULT_LANGUAGE = "en";
 const LANGUAGE_STORAGE_KEY = "deeds.lang";
