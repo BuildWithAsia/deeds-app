@@ -1,53 +1,279 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Deeds | Leaderboard</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css"
+      integrity="sha384-4VhpjS/4jGouVp21Hb+Jseb3CidRubc4QpfAlWTMwVzKhI6+w4n1vCtbmZh9rqxW"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="bg-slate-50 text-slate-900">
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <div
+      class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-teal-50"
+    >
+      <header class="border-b border-slate-200 bg-white/90 backdrop-blur">
+        <div class="mx-auto flex max-w-5xl flex-col gap-4 px-6 py-5">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <a
+              href="dashboard.html"
+              class="flex items-center gap-2 text-lg font-semibold text-slate-900"
+            >
+              <span
+                class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-teal-600 text-white"
+                aria-hidden="true"
+                >D</span
+              >
+              <span data-i18n="common.appName">Deeds</span>
+            </a>
+            <nav
+              class="flex flex-wrap items-center gap-4 text-sm text-slate-600"
+              aria-label="Primary navigation"
+            >
+              <a
+                href="dashboard.html"
+                class="hover:text-teal-700"
+                data-i18n="nav.dashboard"
+                >Dashboard</a
+              >
+              <a
+                href="leaderboard.html"
+                class="text-teal-700"
+                data-i18n="nav.leaderboard"
+                aria-current="page"
+                >Leaderboard</a
+              >
+              <a
+                href="choose.html"
+                class="hover:text-teal-700"
+                data-i18n="nav.choose"
+                >Choose deed</a
+              >
+              <a
+                href="submit.html"
+                class="hover:text-teal-700"
+                data-i18n="nav.submit"
+                >Submit deed</a
+              >
+              <a
+                href="profile.html"
+                class="hover:text-teal-700"
+                data-i18n="nav.profile"
+                >Profile</a
+              >
+            </nav>
+            <div class="flex items-center gap-3">
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm transition hover:border-teal-600 hover:text-teal-700"
+                  data-lang-switch="en"
+                  data-i18n-label="language.englishLabel"
+                  aria-label="Switch to English"
+                >
+                  EN
+                </button>
+                <button
+                  type="button"
+                  class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm transition hover:border-teal-600 hover:text-teal-700"
+                  data-lang-switch="ht"
+                  data-i18n-label="language.creoleLabel"
+                  aria-label="Chanje lang pou Kreyòl"
+                >
+                  HT
+                </button>
+              </div>
+              <button
+                type="button"
+                class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-teal-600 hover:text-teal-700"
+                data-action="logout"
+                data-i18n="nav.logout"
+              >
+                Log out
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
 
-  
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Deeds Leaderboard</title>
+      <main
+        id="main-content"
+        class="mx-auto flex max-w-5xl flex-col gap-12 px-6 py-12"
+      >
+        <section
+          class="grid gap-6 rounded-2xl bg-white p-8 shadow-md shadow-teal-900/5"
+        >
+          <div class="flex flex-wrap items-end justify-between gap-6">
+            <div class="max-w-xl space-y-2">
+              <p
+                class="text-sm font-medium uppercase tracking-[0.18em] text-teal-600"
+                data-i18n="leaderboard.heroEyebrow"
+              >
+                Friendly competition
+              </p>
+              <h1 class="text-3xl font-semibold tracking-tight">
+                <span data-i18n="leaderboard.heroTitle"
+                  >Neighborhood leaderboard</span
+                >
+              </h1>
+              <p
+                class="text-base text-slate-600"
+                data-i18n="leaderboard.heroDescription"
+              >
+                Track the top contributors this week and cheer on your block.
+                Rankings reset every Monday at 9 am.
+              </p>
+            </div>
+            <div
+              class="rounded-2xl border border-slate-200 bg-slate-50 p-6 text-right shadow-sm"
+            >
+              <p
+                class="text-sm font-semibold uppercase tracking-wide text-slate-500"
+                data-i18n="leaderboard.weekLabel"
+              >
+                This week so far
+              </p>
+              <p class="mt-2 text-3xl font-semibold text-teal-600">
+                <span data-role="leaderboard-total">0</span>
+              </p>
+              <p
+                class="mt-1 text-sm text-slate-500"
+                data-role="leaderboard-updated"
+                data-i18n="leaderboard.updatedPlaceholder"
+              >
+                Updated moments ago
+              </p>
+            </div>
+          </div>
+        </section>
 
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.3/dist/tailwind.min.css" rel="stylesheet">
-      <link rel="stylesheet" href="styles.css" />
+        <section
+          class="grid gap-8 rounded-2xl border border-slate-100 bg-white p-8 shadow-sm shadow-teal-900/5"
+        >
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <h2
+              class="text-xl font-semibold text-slate-900"
+              data-i18n="leaderboard.tableTitle"
+            >
+              Top neighbors
+            </h2>
+            <span
+              class="text-sm text-slate-500"
+              data-i18n="leaderboard.weekLabel"
+            >
+              This week so far
+            </span>
+          </div>
+          <div class="overflow-hidden rounded-xl border border-slate-200">
+            <table class="min-w-full divide-y divide-slate-200">
+              <thead
+                class="bg-slate-100 text-left text-xs font-semibold uppercase tracking-wide text-slate-600"
+              >
+                <tr>
+                  <th
+                    scope="col"
+                    class="px-4 py-3"
+                    data-i18n="leaderboard.rank"
+                  >
+                    Rank
+                  </th>
+                  <th
+                    scope="col"
+                    class="px-4 py-3"
+                    data-i18n="leaderboard.neighbor"
+                  >
+                    Neighbor
+                  </th>
+                  <th
+                    scope="col"
+                    class="px-4 py-3 text-right"
+                    data-i18n="leaderboard.credits"
+                  >
+                    Credits
+                  </th>
+                </tr>
+              </thead>
+              <tbody
+                id="leaderboard-body"
+                class="divide-y divide-slate-200 bg-white"
+                aria-live="polite"
+              >
+                <tr>
+                  <td
+                    class="px-4 py-6 text-center text-sm text-slate-500"
+                    colspan="3"
+                  >
+                    Loading leaderboard…
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
 
-</head>
+        <section class="grid gap-8 md:grid-cols-2">
+          <div
+            class="grid gap-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm shadow-teal-900/5"
+          >
+            <div class="space-y-2">
+              <h2
+                class="text-lg font-semibold text-slate-900"
+                data-i18n="leaderboard.blocksTitle"
+              >
+                Block rankings
+              </h2>
+              <p
+                class="text-sm text-slate-500"
+                data-i18n="leaderboard.blocksHint"
+              >
+                Blocks with 25+ deeds unlock a neighborhood celebration.
+              </p>
+            </div>
+            <ul id="leaderboard-blocks" class="space-y-3"></ul>
+            <p
+              class="rounded-lg border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500"
+              data-role="leaderboard-blocks-empty"
+              data-i18n="leaderboard.blocksEmpty"
+            >
+              No blocks have verified deeds yet.
+            </p>
+          </div>
 
-
-
-<body class="landing-body">
-
-  <main class="landing-container">
-    <h1 class="landing-title">🌍 Deeds Leaderboard</h1>
-    <ul id="leaderboard" class="divide-y divide-slate-700 bg-slate-800 rounded-lg shadow-lg"></ul>
-  </main>
-
-  <script>
-  async function loadLeaderboard() {
-    const container = document.getElementById("leaderboard");
-    container.innerHTML = "<li class='p-4 text-center text-slate-400'>Loading...</li>";
-
-    try {
-      const res = await fetch("api/leaderboard");
-      if (!res.ok) throw new Error("Failed to fetch leaderboard");
-      const data = await res.json();
-
-      if (!data.length) {
-        container.innerHTML = "<li class='p-4 text-center text-slate-400'>No verified deeds yet.</li>";
-        return;
-      }
-
-      container.innerHTML = data.map((u, i) => `
-        <li class="p-4 flex justify-between hover:bg-slate-700 transition">
-          <span class="font-semibold">${i + 1}. ${u.name || "Neighbor"}</span>
-          <span>${u.credits} credits</span> <span>${u.verified} deeds</span>
-        </li>
-      `).join("");
-    } catch (err) {
-      container.innerHTML = `<li class='p-4 text-center text-red-400'>Error: ${err.message}</li>`;
-    }
-  }
-
-  loadLeaderboard();
-  </script>
-</body>
+          <div
+            class="grid gap-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm shadow-teal-900/5"
+          >
+            <div class="space-y-2">
+              <h2
+                class="text-lg font-semibold text-slate-900"
+                data-i18n="leaderboard.shoutoutsTitle"
+              >
+                Shoutouts
+              </h2>
+            </div>
+            <ul id="leaderboard-shoutouts" class="space-y-3"></ul>
+            <p
+              class="rounded-lg border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500"
+              data-role="leaderboard-shoutouts-empty"
+              data-i18n="leaderboard.shoutoutsEmpty"
+            >
+              Complete a deed to unlock neighbor shoutouts.
+            </p>
+            <a
+              href="submit.html"
+              class="inline-flex items-center justify-center rounded-lg border border-teal-600 bg-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700"
+              data-i18n="leaderboard.nominateCta"
+            >
+              Nominate a neighbor
+            </a>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script src="script.js" defer></script>
+  </body>
 </html>
