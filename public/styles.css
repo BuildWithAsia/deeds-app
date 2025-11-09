@@ -167,6 +167,23 @@ a:hover {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.12rem;
+  cursor: pointer;
+  transition: all 180ms ease;
+}
+
+.landing-tag:hover {
+  background: rgba(250, 204, 21, 0.25);
+  border-color: rgba(250, 204, 21, 0.5);
+  transform: scale(1.05);
+}
+
+.lang-switcher-container {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  display: flex;
+  gap: 0.5rem;
+  z-index: 10;
 }
 
 .landing-actions {
