@@ -98,6 +98,26 @@ const LANGUAGE_STORAGE_KEY = "deeds.lang";
 const translationsCache = new Map();
 let activeLanguage = DEFAULT_LANGUAGE;
 
+// Inline fallback translations (used when JSON files can't be loaded)
+const FALLBACK_TRANSLATIONS = {
+  en: {
+    common: { appName: "Deeds" },
+    nav: {
+      dashboard: "Dashboard",
+      choose: "Choose deed",
+      submit: "Submit deed",
+      leaderboard: "Leaderboard",
+      profile: "Profile",
+      verify: "Verify queue",
+      logout: "Log out",
+    },
+    language: {
+      englishLabel: "Switch to English",
+      creoleLabel: "Switch to Haitian Creole",
+    },
+  },
+};
+
 const SELECTED_DEED_KEY = "deeds.selectedTemplate";
 
 function togglePw() {
@@ -135,7 +155,15 @@ async function loadTranslations(language) {
     translationsCache.set(language, data);
     return data;
   } catch (error) {
-    console.warn("Translation load failed", error);
+    console.warn("Translation load failed, using fallback", error);
+    // Use inline fallback translations
+    const fallback =
+      FALLBACK_TRANSLATIONS[language] ||
+      FALLBACK_TRANSLATIONS[DEFAULT_LANGUAGE];
+    if (fallback) {
+      translationsCache.set(language, fallback);
+      return fallback;
+    }
     return null;
   }
 }
