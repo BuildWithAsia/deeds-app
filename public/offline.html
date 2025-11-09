@@ -11,7 +11,12 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <link rel="manifest" href="/manifest.json" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href="/icons/icon-192.png"
+    />
 
     <link
       rel="stylesheet"
@@ -31,7 +36,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(135deg, #0A143C 0%, #00B7B3 100%);
+        background: linear-gradient(135deg, #0a143c 0%, #00b7b3 100%);
       }
       .offline-card {
         background: white;
@@ -43,7 +48,7 @@
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
       }
       .retry-button {
-        background: #00B7B3;
+        background: #00b7b3;
         color: white;
         padding: 0.75rem 2rem;
         border-radius: 0.5rem;
@@ -62,7 +67,8 @@
         animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
       }
       @keyframes pulse {
-        0%, 100% {
+        0%,
+        100% {
           opacity: 0.6;
         }
         50% {
@@ -74,8 +80,19 @@
   <body>
     <div class="offline-container">
       <div class="offline-card">
-        <svg class="offline-icon offline-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3m8.293 8.293l1.414 1.414"></path>
+        <svg
+          class="offline-icon offline-pulse"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3m8.293 8.293l1.414 1.414"
+          ></path>
         </svg>
 
         <h1 class="text-3xl font-bold text-slate-900 mb-4">You're Offline</h1>
@@ -85,12 +102,14 @@
         </p>
 
         <p class="text-slate-600 mb-4">
-          Don't worry! Your good deeds are still saved locally and will sync when you're back online.
+          Don't worry! Your good deeds are still saved locally and will sync
+          when you're back online.
         </p>
 
         <div class="bg-teal-50 border border-teal-200 rounded-lg p-4 mb-4">
           <p class="text-sm text-teal-800">
-            <strong>Tip:</strong> You can still browse cached pages while offline. Check your internet connection and try again.
+            <strong>Tip:</strong> You can still browse cached pages while
+            offline. Check your internet connection and try again.
           </p>
         </div>
 
@@ -99,7 +118,10 @@
         </button>
 
         <div class="mt-6">
-          <a href="/" class="text-teal-600 hover:text-teal-700 text-sm font-medium">
+          <a
+            href="/"
+            class="text-teal-600 hover:text-teal-700 text-sm font-medium"
+          >
             Go to Home
           </a>
         </div>
@@ -108,16 +130,16 @@
 
     <script>
       // Auto-retry when connection is restored
-      window.addEventListener('online', () => {
-        console.log('[PWA] Connection restored');
+      window.addEventListener("online", () => {
+        console.log("[PWA] Connection restored");
         setTimeout(() => {
           window.location.reload();
         }, 1000);
       });
 
       // Show connection status
-      window.addEventListener('offline', () => {
-        console.log('[PWA] Connection lost');
+      window.addEventListener("offline", () => {
+        console.log("[PWA] Connection lost");
       });
 
       // Check if we're actually online now

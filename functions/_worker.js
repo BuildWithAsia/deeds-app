@@ -69,7 +69,8 @@ function base64UrlEncode(input) {
 function base64UrlEncodeFromArrayBuffer(buffer) {
   const bytes = new Uint8Array(buffer);
   let binary = "";
-  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  for (let i = 0; i < bytes.length; i++)
+    binary += String.fromCharCode(bytes[i]);
   return base64UrlEncode(binary);
 }
 
@@ -92,11 +93,25 @@ function base64UrlToUint8Array(value) {
 async function createSessionToken(userId, role, secret) {
   if (!secret) throw new Error("SESSION_SECRET missing");
   const header = { alg: "HS256", typ: "JWT" };
-  const payload = { sub: String(userId), role: role || "user", iat: Math.floor(Date.now() / 1000) };
+  const payload = {
+    sub: String(userId),
+    role: role || "user",
+    iat: Math.floor(Date.now() / 1000),
+  };
   const unsigned = `${base64UrlEncode(JSON.stringify(header))}.${base64UrlEncode(JSON.stringify(payload))}`;
   const encoder = new TextEncoder();
-  const key = await crypto.subtle.importKey("raw", encoder.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(unsigned));
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const signature = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    encoder.encode(unsigned),
+  );
   return `${unsigned}.${base64UrlEncodeFromArrayBuffer(signature)}`;
 }
 
@@ -108,8 +123,19 @@ async function verifySessionToken(token, secret) {
   const unsigned = `${header}.${payload}`;
   try {
     const encoder = new TextEncoder();
-    const key = await crypto.subtle.importKey("raw", encoder.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["verify"]);
-    const ok = await crypto.subtle.verify("HMAC", key, base64UrlToUint8Array(sig), encoder.encode(unsigned));
+    const key = await crypto.subtle.importKey(
+      "raw",
+      encoder.encode(secret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["verify"],
+    );
+    const ok = await crypto.subtle.verify(
+      "HMAC",
+      key,
+      base64UrlToUint8Array(sig),
+      encoder.encode(unsigned),
+    );
     if (!ok) return null;
     const body = JSON.parse(base64UrlDecodeToString(payload));
     return { userId: Number(body.sub), role: body.role || "user" };
@@ -123,7 +149,9 @@ async function hashPassword(password) {
   const encoder = new TextEncoder();
   const data = encoder.encode(password);
   const buf = await crypto.subtle.digest("SHA-256", data);
-  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
+  return Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 function responseWithMessage(message, status = 200, extra = {}) {
@@ -148,17 +176,32 @@ async function handleSignup(request, env) {
   const password = String(body.password || "");
   if (!name || !email || password.length < 8)
     return responseWithMessage("Missing or weak credentials.", 400);
-  const exists = await db.prepare("SELECT id FROM users WHERE email=?1").bind(email).first();
+  const exists = await db
+    .prepare("SELECT id FROM users WHERE email=?1")
+    .bind(email)
+    .first();
   if (exists) return responseWithMessage("Email already registered.", 409);
   const hash = await hashPassword(password);
   const created = new Date().toISOString();
   const res = await db
-    .prepare("INSERT INTO users (name,email,password_hash,role,verification_status,created_at) VALUES (?1,?2,?3,'user','pending',?4)")
+    .prepare(
+      "INSERT INTO users (name,email,password_hash,role,verification_status,created_at) VALUES (?1,?2,?3,'user','pending',?4)",
+    )
     .bind(name, email, hash, created)
     .run();
-  const token = await createSessionToken(res.meta.last_row_id, "user", resolveSessionSecret(env));
+  const token = await createSessionToken(
+    res.meta.last_row_id,
+    "user",
+    resolveSessionSecret(env),
+  );
   return responseWithMessage("Signup successful.", 201, {
-    profile: { id: res.meta.last_row_id, name, email, role: "user", sessionToken: token },
+    profile: {
+      id: res.meta.last_row_id,
+      name,
+      email,
+      role: "user",
+      sessionToken: token,
+    },
   });
 }
 
@@ -172,14 +215,18 @@ async function handleLogin(request, env) {
     .prepare(
       `SELECT u.id,u.name,u.email,u.password_hash,u.role,u.credits,
        COALESCE(SUM(CASE WHEN d.status='verified' THEN 1 ELSE 0 END),0) AS completed
-       FROM users u LEFT JOIN deeds d ON d.user_id=u.id WHERE u.email=?1 GROUP BY u.id`
+       FROM users u LEFT JOIN deeds d ON d.user_id=u.id WHERE u.email=?1 GROUP BY u.id`,
     )
     .bind(email)
     .first();
   if (!user) return responseWithMessage("Account not found.", 404);
-  if (await hashPassword(password) !== user.password_hash)
+  if ((await hashPassword(password)) !== user.password_hash)
     return responseWithMessage("Invalid credentials.", 401);
-  const token = await createSessionToken(user.id, user.role, resolveSessionSecret(env));
+  const token = await createSessionToken(
+    user.id,
+    user.role,
+    resolveSessionSecret(env),
+  );
   return responseWithMessage(`Welcome back, ${user.name}!`, 200, {
     profile: {
       id: user.id,
@@ -202,46 +249,69 @@ async function handleCreateDeed(request, env) {
   const userId = Number(body.user_id);
   const title = sanitizeText(body.title);
   const proof = normalizeUrl(body.proof_url);
-  if (!userId || !title || !proof) return responseWithMessage("Missing deed data.", 400);
+  if (!userId || !title || !proof)
+    return responseWithMessage("Missing deed data.", 400);
 
   try {
     // First, try with all columns (if migrations 0010 and 0013 have been run)
     await db
       .prepare(
-        "INSERT INTO deeds (user_id,title,description,proof_url,impact,duration,status,created_at) VALUES (?1,?2,?3,?4,?5,?6,'pending',datetime('now'))"
+        "INSERT INTO deeds (user_id,title,description,proof_url,impact,duration,status,created_at) VALUES (?1,?2,?3,?4,?5,?6,'pending',datetime('now'))",
       )
-      .bind(userId, title, body.description || "", proof, body.impact || "", body.duration || "")
+      .bind(
+        userId,
+        title,
+        body.description || "",
+        proof,
+        body.impact || "",
+        body.duration || "",
+      )
       .run();
-    return responseWithMessage("Deed submitted for review.", 201, { success: true });
+    return responseWithMessage("Deed submitted for review.", 201, {
+      success: true,
+    });
   } catch (error) {
-    console.error("Database error creating deed (attempting with all columns):", error);
+    console.error(
+      "Database error creating deed (attempting with all columns):",
+      error,
+    );
 
     // If that fails, try with just the base columns (user_id, title, proof_url, status, created_at)
     try {
       console.log("Retrying with base schema columns only...");
       await db
         .prepare(
-          "INSERT INTO deeds (user_id,title,proof_url,status,created_at) VALUES (?1,?2,?3,'pending',datetime('now'))"
+          "INSERT INTO deeds (user_id,title,proof_url,status,created_at) VALUES (?1,?2,?3,'pending',datetime('now'))",
         )
         .bind(userId, title, proof)
         .run();
-      return responseWithMessage("Deed submitted for review.", 201, { success: true });
+      return responseWithMessage("Deed submitted for review.", 201, {
+        success: true,
+      });
     } catch (fallbackError) {
-      console.error("Database error creating deed (base columns):", fallbackError);
+      console.error(
+        "Database error creating deed (base columns):",
+        fallbackError,
+      );
 
       // Last resort: try with explicit NULL for id to force autoincrement
       try {
         console.log("Final attempt: INSERT with explicit NULL id...");
         await db
           .prepare(
-            "INSERT INTO deeds (id,user_id,title,proof_url,status,created_at) VALUES (NULL,?1,?2,?3,'pending',datetime('now'))"
+            "INSERT INTO deeds (id,user_id,title,proof_url,status,created_at) VALUES (NULL,?1,?2,?3,'pending',datetime('now'))",
           )
           .bind(userId, title, proof)
           .run();
-        return responseWithMessage("Deed submitted for review.", 201, { success: true });
+        return responseWithMessage("Deed submitted for review.", 201, {
+          success: true,
+        });
       } catch (finalError) {
         console.error("All INSERT attempts failed:", finalError);
-        return responseWithMessage(`Database error: ${finalError.message}. Please contact support - database schema may need repair.`, 500);
+        return responseWithMessage(
+          `Database error: ${finalError.message}. Please contact support - database schema may need repair.`,
+          500,
+        );
       }
     }
   }
@@ -257,14 +327,23 @@ async function handleVerifyDeed(request, env) {
   const body = await parseJsonBody(request);
   const deedId = Number(body.deed_id);
   if (!deedId) return responseWithMessage("Missing deed_id.", 400);
-  const deed = await db.prepare("SELECT id,user_id,status FROM deeds WHERE id=?1").bind(deedId).first();
+  const deed = await db
+    .prepare("SELECT id,user_id,status FROM deeds WHERE id=?1")
+    .bind(deedId)
+    .first();
   if (!deed) return responseWithMessage("Not found.", 404);
-  if (deed.status === "verified") return responseWithMessage("Already verified.", 409);
+  if (deed.status === "verified")
+    return responseWithMessage("Already verified.", 409);
   await db
-    .prepare("UPDATE deeds SET status='verified',verified_at=datetime('now') WHERE id=?1")
+    .prepare(
+      "UPDATE deeds SET status='verified',verified_at=datetime('now') WHERE id=?1",
+    )
     .bind(deedId)
     .run();
-  await db.prepare("UPDATE users SET credits=credits+1 WHERE id=?1").bind(deed.user_id).run();
+  await db
+    .prepare("UPDATE users SET credits=credits+1 WHERE id=?1")
+    .bind(deed.user_id)
+    .run();
   return Response.json({ success: true, deed_id: deedId });
 }
 
@@ -281,7 +360,7 @@ async function handleLeaderboard(env) {
       LEFT JOIN deeds d ON u.id=d.user_id
       GROUP BY u.id
       ORDER BY u.credits DESC,deeds_verified DESC,u.name ASC
-      LIMIT 50`
+      LIMIT 50`,
     )
     .all();
   const board = (res.results || []).map((r) => ({
@@ -299,7 +378,9 @@ async function handleLeaderboard(env) {
 async function handleDeedCatalog(env) {
   const db = env.DEEDS_DB;
   const res = await db
-    .prepare("SELECT id,title,description,impact,duration FROM deed_catalog ORDER BY id ASC")
+    .prepare(
+      "SELECT id,title,description,impact,duration FROM deed_catalog ORDER BY id ASC",
+    )
     .all();
   return Response.json(res.results || []);
 }
@@ -315,7 +396,7 @@ async function handleProfile(request, env) {
       COUNT(CASE WHEN d.status='verified' THEN 1 END) AS verified_deeds
       FROM users u
       LEFT JOIN deeds d ON u.id=d.user_id
-      WHERE u.id=?1 GROUP BY u.id`
+      WHERE u.id=?1 GROUP BY u.id`,
     )
     .bind(id)
     .all();
@@ -367,7 +448,7 @@ export default {
       console.error("Unhandled error in fetch handler:", error);
       return Response.json(
         { message: "Internal server error", error: error.message },
-        { status: 500 }
+        { status: 500 },
       );
     }
   },
