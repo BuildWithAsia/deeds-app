@@ -30,8 +30,8 @@ function normalizeProfile(rawProfile) {
   }
 
   // Use role field as the source of truth
-  const role = rawProfile.role || 'user';
-  const isAdmin = role === 'admin';
+  const role = rawProfile.role || "user";
+  const isAdmin = role === "admin";
 
   const sessionToken =
     typeof rawProfile.sessionToken === "string" && rawProfile.sessionToken
@@ -154,6 +154,8 @@ function renderQueue(items) {
   items.forEach((item) => {
     const row = document.createElement("tr");
     row.className = "text-sm text-slate-700";
+    row.dataset.deedId = item?.id;
+    row.dataset.status = item?.status || "pending";
 
     const deedCell = document.createElement("td");
     deedCell.className = "px-6 py-4 align-top";
@@ -169,6 +171,14 @@ function renderQueue(items) {
     );
     deedCell.appendChild(title);
     deedCell.appendChild(meta);
+
+    // Add description if present
+    if (item?.description) {
+      const description = document.createElement("div");
+      description.className = "mt-2 text-sm text-slate-600 max-w-md";
+      description.textContent = item.description;
+      deedCell.appendChild(description);
+    }
 
     const badgeTone = item?.status === "verified" ? "verified" : "pending";
     const badgeLabel =
@@ -191,14 +201,41 @@ function renderQueue(items) {
     const proofCell = document.createElement("td");
     proofCell.className = "px-6 py-4 align-top";
     if (item?.proof_url) {
-      const link = document.createElement("a");
-      link.href = item.proof_url;
-      link.target = "_blank";
-      link.rel = "noopener noreferrer";
-      link.className =
-        "inline-flex items-center gap-1 text-teal-700 hover:text-teal-800";
-      link.textContent = t("verify.openProof", "Open proof");
-      proofCell.appendChild(link);
+      // Check if URL is an image
+      const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(item.proof_url);
+
+      if (isImage) {
+        const preview = document.createElement("div");
+        preview.className = "space-y-2";
+
+        const img = document.createElement("img");
+        img.src = item.proof_url;
+        img.alt = "Proof preview";
+        img.className =
+          "w-32 h-32 object-cover rounded border border-slate-200 shadow-sm hover:shadow-md transition cursor-pointer";
+        img.loading = "lazy";
+        img.onclick = () => window.open(item.proof_url, "_blank");
+        preview.appendChild(img);
+
+        const link = document.createElement("a");
+        link.href = item.proof_url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.className = "block text-xs text-teal-700 hover:text-teal-800";
+        link.textContent = t("verify.openProof", "Open full size");
+        preview.appendChild(link);
+
+        proofCell.appendChild(preview);
+      } else {
+        const link = document.createElement("a");
+        link.href = item.proof_url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.className =
+          "inline-flex items-center gap-1 text-teal-700 hover:text-teal-800 underline";
+        link.textContent = t("verify.openProof", "Open proof");
+        proofCell.appendChild(link);
+      }
     } else {
       proofCell.textContent = t("verify.noProof", "No link provided");
       proofCell.classList.add("text-slate-500");
@@ -282,14 +319,23 @@ async function fetchQueue() {
 
     const data = await response.json();
     const items = Array.isArray(data) ? data : [];
-    renderQueue(items);
-    if (items.length === 0) {
+
+    // Filter to only show pending deeds (auto-remove verified)
+    const pendingItems = items.filter((item) => item?.status === "pending");
+    renderQueue(pendingItems);
+    if (pendingItems.length === 0) {
       setFlash(
         t("verify.flashEmpty", "No pending deeds at the moment."),
         "info",
       );
     } else {
-      setFlash(t("verify.flashLoaded", "Pending deeds loaded."), "success");
+      setFlash(
+        t(
+          "verify.flashLoaded",
+          `${pendingItems.length} pending deed${pendingItems.length === 1 ? "" : "s"} loaded.`,
+        ),
+        "success",
+      );
     }
   } catch (error) {
     console.error("Failed to load pending deeds", error);
@@ -474,6 +520,43 @@ async function verifyDeed(deedId, button) {
   }
 }
 
+// Keyboard shortcuts for admin verification
+function setupKeyboardShortcuts() {
+  document.addEventListener("keydown", (e) => {
+    // Ignore if user is typing in an input field
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") {
+      return;
+    }
+
+    // V key: Verify first pending deed
+    if (e.key === "v" || e.key === "V") {
+      e.preventDefault();
+      const firstPendingRow = document.querySelector(
+        '[data-role="queue"] tr[data-status="pending"]',
+      );
+      if (firstPendingRow) {
+        const verifyButton = firstPendingRow.querySelector(
+          "button:not([disabled])",
+        );
+        if (verifyButton) {
+          verifyButton.click();
+          setFlash(
+            t("verify.keyboardHint", "✓ Keyboard shortcut used"),
+            "success",
+          );
+        }
+      }
+    }
+
+    // R key: Refresh queue
+    if (e.key === "r" || e.key === "R") {
+      e.preventDefault();
+      setFlash(t("verify.refreshing", "Refreshing queue…"), "info");
+      fetchQueue();
+    }
+  });
+}
+
 window.addEventListener("DOMContentLoaded", () => {
   const refreshButton = document.querySelector('[data-action="refresh"]');
   if (refreshButton) {
@@ -483,6 +566,7 @@ window.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  setupKeyboardShortcuts();
   fetchQueue();
 });
 

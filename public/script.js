@@ -1,10 +1,14 @@
 // ========== SERVICE WORKER REGISTRATION ==========
 // Register service worker for PWA functionality
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("/sw.js")
       .then((registration) => {
-        console.log('[PWA] Service Worker registered successfully:', registration.scope);
+        console.log(
+          "[PWA] Service Worker registered successfully:",
+          registration.scope,
+        );
 
         // Check for updates periodically
         setInterval(() => {
@@ -12,13 +16,20 @@ if ('serviceWorker' in navigator) {
         }, 60000); // Check every minute
 
         // Handle service worker updates
-        registration.addEventListener('updatefound', () => {
+        registration.addEventListener("updatefound", () => {
           const newWorker = registration.installing;
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          newWorker.addEventListener("statechange", () => {
+            if (
+              newWorker.state === "installed" &&
+              navigator.serviceWorker.controller
+            ) {
               // New service worker available, prompt user to refresh
-              if (confirm('A new version of Deeds App is available. Reload to update?')) {
-                newWorker.postMessage({ type: 'SKIP_WAITING' });
+              if (
+                confirm(
+                  "A new version of Deeds App is available. Reload to update?",
+                )
+              ) {
+                newWorker.postMessage({ type: "SKIP_WAITING" });
                 window.location.reload();
               }
             }
@@ -26,12 +37,12 @@ if ('serviceWorker' in navigator) {
         });
       })
       .catch((error) => {
-        console.error('[PWA] Service Worker registration failed:', error);
+        console.error("[PWA] Service Worker registration failed:", error);
       });
 
     // Handle service worker controller change
     let refreshing = false;
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
       if (!refreshing) {
         refreshing = true;
         window.location.reload();
@@ -44,36 +55,36 @@ if ('serviceWorker' in navigator) {
 // Handle PWA install prompt
 let deferredInstallPrompt;
 
-window.addEventListener('beforeinstallprompt', (e) => {
+window.addEventListener("beforeinstallprompt", (e) => {
   // Prevent the mini-infobar from appearing on mobile
   e.preventDefault();
   // Stash the event so it can be triggered later
   deferredInstallPrompt = e;
-  console.log('[PWA] Install prompt available');
+  console.log("[PWA] Install prompt available");
 
   // Optionally show install button
   showInstallPromotion();
 });
 
-window.addEventListener('appinstalled', () => {
-  console.log('[PWA] App installed successfully');
+window.addEventListener("appinstalled", () => {
+  console.log("[PWA] App installed successfully");
   deferredInstallPrompt = null;
 });
 
 function showInstallPromotion() {
   // Check if we should show the install button
-  const installButton = document.getElementById('pwa-install-button');
+  const installButton = document.getElementById("pwa-install-button");
   if (installButton && deferredInstallPrompt) {
-    installButton.style.display = 'block';
-    installButton.addEventListener('click', async () => {
+    installButton.style.display = "block";
+    installButton.addEventListener("click", async () => {
       if (!deferredInstallPrompt) return;
 
       deferredInstallPrompt.prompt();
       const { outcome } = await deferredInstallPrompt.userChoice;
-      console.log('[PWA] User choice:', outcome);
+      console.log("[PWA] User choice:", outcome);
 
-      if (outcome === 'accepted') {
-        installButton.style.display = 'none';
+      if (outcome === "accepted") {
+        installButton.style.display = "none";
       }
       deferredInstallPrompt = null;
     });
@@ -372,8 +383,8 @@ function normalizeStoredProfile(rawProfile) {
   const normalized = { ...rawProfile };
 
   // Use role field as the source of truth
-  const role = rawProfile.role || 'user';
-  const isAdmin = role === 'admin';
+  const role = rawProfile.role || "user";
+  const isAdmin = role === "admin";
 
   const sessionToken =
     typeof rawProfile.sessionToken === "string" && rawProfile.sessionToken
@@ -478,10 +489,13 @@ let currentPage = "";
 if (typeof window !== "undefined") {
   const pathname = window.location.pathname;
   currentPage = pathname.split("/").pop();
-  const fullPath = pathname.startsWith('/') ? pathname.slice(1) : pathname;
+  const fullPath = pathname.startsWith("/") ? pathname.slice(1) : pathname;
 
   const isProtected = PROTECTED_PAGES.has(currentPage);
-  const isAdmin = ADMIN_PAGES.has(currentPage) || ADMIN_PAGES.has(fullPath) || pathname.includes('/admin/');
+  const isAdmin =
+    ADMIN_PAGES.has(currentPage) ||
+    ADMIN_PAGES.has(fullPath) ||
+    pathname.includes("/admin/");
 
   if (isProtected || isAdmin) {
     const profile = getProfile();
@@ -810,6 +824,8 @@ function attachAuthForms() {
       if (submitButton) {
         submitButton.disabled = true;
         submitButton.dataset.loading = "true";
+        const spinner = submitButton.querySelector("[data-spinner]");
+        if (spinner) spinner.classList.remove("hidden");
       }
       setMessage(messageElement, "Checking your details…", "info");
 
@@ -861,6 +877,8 @@ function attachAuthForms() {
         if (submitButton) {
           submitButton.disabled = false;
           delete submitButton.dataset.loading;
+          const spinner = submitButton.querySelector("[data-spinner]");
+          if (spinner) spinner.classList.add("hidden");
         }
       }
     });
@@ -1074,51 +1092,69 @@ async function loadLeaderboard() {
 
     const data = await response.json();
     const entries = Array.isArray(data) ? data : [];
+
+    // Remove skeleton loaders
+    tbody.querySelectorAll("[data-skeleton]").forEach((el) => el.remove());
     tbody.innerHTML = "";
 
     let totalVerified = 0;
     const regionTotals = new Map();
 
+    // Get current user profile to highlight their row
+    const currentProfile = getProfile();
+    const currentUserId = currentProfile?.id;
+
     entries.forEach((user, index) => {
       const row = document.createElement("tr");
       const name = user?.name || translate("leaderboard.anonymous") || "—";
       const credits = Number(user?.credits ?? 0);
-      const deedCount = Number(user?.deedCount ?? 0);
-      totalVerified += deedCount;
+      const verified = Number(user?.verified ?? 0);
+      const total = Number(user?.total ?? 0);
+      totalVerified += verified;
+
+      // Highlight current user's row
+      const isCurrentUser = currentUserId && user?.id === currentUserId;
+      if (isCurrentUser) {
+        row.className = "bg-teal-50";
+      }
 
       const normalizedRegion =
         typeof user?.region === "string" && user.region.trim().length > 0
           ? user.region.trim()
           : translate("leaderboard.regionUnknown") || "Across the neighborhood";
-      if (deedCount > 0) {
+      if (verified > 0) {
         regionTotals.set(
           normalizedRegion,
-          (regionTotals.get(normalizedRegion) || 0) + deedCount,
+          (regionTotals.get(normalizedRegion) || 0) + verified,
         );
       }
 
       const labelKey =
-        deedCount === 1
+        verified === 1
           ? "leaderboard.deedLabelSingular"
           : "leaderboard.deedLabelPlural";
       const deedLabel =
-        translate(labelKey) || (deedCount === 1 ? "deed" : "deeds");
-      const deedMetaText = deedCount
+        translate(labelKey) || (verified === 1 ? "deed" : "deeds");
+      const deedMetaText = verified
         ? translate("leaderboard.verifiedMeta", {
-            count: deedCount,
+            count: verified,
             label: deedLabel,
-          }) || `${deedCount} ${deedLabel}`
+          }) || `${verified} verified`
         : "";
 
       const deedMetaHtml = deedMetaText
         ? `<div class="mt-0.5 text-xs text-slate-400">${deedMetaText}</div>`
         : "";
 
+      const userBadge = isCurrentUser
+        ? `<span class="ml-2 inline-flex items-center gap-1 rounded-full bg-teal-100 px-2 py-0.5 text-[0.65rem] font-semibold text-teal-700">You</span>`
+        : "";
+
       row.innerHTML = `
         <td class="px-4 py-3 font-medium text-slate-600">${index + 1}</td>
-        <td class="px-4 py-3">${name}</td>
+        <td class="px-4 py-3"><span class="font-medium">${name}</span>${userBadge}</td>
         <td class="px-4 py-3 text-right">
-          <div class="text-sm font-semibold text-slate-700">${credits}</div>
+          <div class="text-sm font-semibold text-slate-700">${credits} credits</div>
           ${deedMetaHtml}
         </td>`;
       tbody.appendChild(row);
@@ -1175,9 +1211,9 @@ async function loadLeaderboard() {
     if (shoutoutsList) {
       const highlightNeighbors = entries
         .filter((user) => {
-          const deedCount = Number(user?.deedCount ?? 0);
+          const verified = Number(user?.verified ?? 0);
           const creditCount = Number(user?.credits ?? 0);
-          return deedCount > 0 || creditCount > 0;
+          return verified > 0 || creditCount > 0;
         })
         .slice(0, 2);
 
@@ -1188,7 +1224,7 @@ async function loadLeaderboard() {
       } else {
         highlightNeighbors.forEach((user) => {
           const name = user?.name || translate("leaderboard.anonymous") || "—";
-          const deedCount = Number(user?.deedCount ?? 0);
+          const verified = Number(user?.verified ?? 0);
           const regionName =
             typeof user?.region === "string" && user.region.trim().length > 0
               ? user.region.trim()
@@ -1196,18 +1232,18 @@ async function loadLeaderboard() {
                 "Across the neighborhood";
 
           const metaParts = [];
-          if (deedCount > 0) {
+          if (verified > 0) {
             const labelKey =
-              deedCount === 1
+              verified === 1
                 ? "leaderboard.deedLabelSingular"
                 : "leaderboard.deedLabelPlural";
             const deedLabel =
-              translate(labelKey) || (deedCount === 1 ? "deed" : "deeds");
+              translate(labelKey) || (verified === 1 ? "deed" : "deeds");
             const deedMeta =
               translate("leaderboard.verifiedMeta", {
-                count: deedCount,
+                count: verified,
                 label: deedLabel,
-              }) || `${deedCount} ${deedLabel} verified`;
+              }) || `${verified} ${deedLabel} verified`;
             metaParts.push(deedMeta);
           }
 
@@ -1262,12 +1298,47 @@ async function loadLeaderboard() {
   }
 }
 
+function attachPasswordToggles() {
+  document.querySelectorAll("[data-toggle-password]").forEach((button) => {
+    const targetId = button.dataset.togglePassword;
+    const input = document.getElementById(targetId);
+    if (!input) return;
+
+    const eyeIcon = button.querySelector('[data-icon="eye"]');
+    const eyeOffIcon = button.querySelector('[data-icon="eye-off"]');
+
+    button.addEventListener("click", () => {
+      const isPassword = input.type === "password";
+      input.type = isPassword ? "text" : "password";
+
+      if (eyeIcon) eyeIcon.classList.toggle("hidden", isPassword);
+      if (eyeOffIcon) eyeOffIcon.classList.toggle("hidden", !isPassword);
+
+      button.setAttribute(
+        "aria-label",
+        isPassword ? "Hide password" : "Show password",
+      );
+    });
+  });
+}
+
+function autoFocusEmailField() {
+  const emailInput =
+    document.getElementById("login-email") ||
+    document.getElementById("signup-email");
+  if (emailInput && !emailInput.value) {
+    setTimeout(() => emailInput.focus(), 100);
+  }
+}
+
 if (typeof window !== "undefined") {
   window.addEventListener("DOMContentLoaded", async () => {
     await initLocalization();
     attachAuthForms();
     attachLogout();
     attachDeedSelection();
+    attachPasswordToggles();
+    autoFocusEmailField();
 
     if (!sessionProfile && PROTECTED_PAGES.has(currentPage)) {
       const profile = getProfile();
