@@ -32,9 +32,36 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body class="landing-body">
-    <main>
+     <!-- Navigation Bar -->
+    <nav class="top-nav">
+      <div class="nav-brand-container">
+        <!-- Back Arrow Link -->
+        <a
+          href="index.html"
+          class="nav-back-link"
+          aria-label="Back to landing page"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="2.5"
+            stroke="currentColor"
+            class="nav-back-icon"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M15.75 19.5 8.25 12l7.5-7.5"
+            />
+          </svg>
+        </a>
+        <!-- Brand Name -->
+        <span class="nav-brand-text">Deeds</span>
+      </div>
+
       <!-- Language Switcher -->
-      <div class="lang-switcher-container">
+      <div class="nav-lang-switcher">
         <button
           type="button"
           class="landing-tag"
@@ -54,12 +81,15 @@
           HT
         </button>
       </div>
+    </nav>
+    <main>
+      
 
       <!-- Login Form Container -->
       <div class="signup-form">
         <div>
           <div class="signup-logo-container" aria-hidden="true">
-            <span class="signup-logo">D</span>
+           <!-- <span class="signup-logo">🌺</span> -->
           </div>
           <h1 class="signup-title" data-i18n="auth.loginTitle">Welcome back</h1>
           <p class="signup-subtitle" data-i18n="auth.loginSubtitle">
