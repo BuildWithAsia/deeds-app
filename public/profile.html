@@ -3,150 +3,326 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Deeds | Profile</title>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css"
-      integrity="sha384-4VhpjS/4jGouVp21Hb+Jseb3CidRubc4QpfAlWTMwVzKhI6+w4n1vCtbmZh9rqxW"
-      crossorigin="anonymous"
+    <meta
+      name="description"
+      content="View your profile, track your deeds, and manage your preferences"
     />
+    <title>Deeds | Profile</title>
+    <meta name="theme-color" content="#00B7B3" />
+    <link rel="manifest" href="/manifest.json" />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href="/icons/icon-192.png"
+    />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <link rel="stylesheet" href="styles.css" />
+    <style>
+      .profile-container {
+        max-width: 72rem;
+        margin: 0 auto;
+        padding: clamp(2rem, 4vw, 3rem);
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 2.5rem;
+      }
+      .content-card {
+        background: rgba(10, 17, 40, 0.75);
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        border-radius: 1.25rem;
+        padding: 2rem;
+        box-shadow: 0 1rem 2rem rgba(4, 6, 18, 0.5);
+        backdrop-filter: blur(10px);
+        position: relative;
+        overflow: hidden;
+      }
+      .content-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: radial-gradient(
+          circle at top right,
+          rgba(250, 204, 21, 0.15),
+          transparent 60%
+        );
+        pointer-events: none;
+      }
+      .avatar {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 4rem;
+        height: 4rem;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        color: #fff;
+        font-size: 1.5rem;
+        font-weight: 700;
+        border: 2px solid rgba(34, 197, 94, 0.5);
+      }
+      .stat-box {
+        background: rgba(15, 23, 42, 0.65);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        border-radius: 0.75rem;
+        padding: 1rem;
+      }
+      .stat-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: rgba(226, 232, 240, 0.6);
+        margin: 0;
+      }
+      .stat-value {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: #f8fafc;
+        margin: 0.25rem 0 0 0;
+      }
+      .stat-value.highlight {
+        color: #22c55e;
+      }
+      .pref-item {
+        background: rgba(15, 23, 42, 0.65);
+        border-radius: 0.75rem;
+        padding: 1rem;
+      }
+      .pref-title {
+        font-size: 0.875rem;
+        font-weight: 700;
+        color: rgba(226, 232, 240, 0.9);
+        margin: 0 0 0.25rem 0;
+      }
+      .pref-desc {
+        font-size: 0.875rem;
+        color: rgba(226, 232, 240, 0.7);
+        margin: 0;
+      }
+      .deed-item {
+        background: rgba(15, 23, 42, 0.65);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        border-radius: 0.75rem;
+        padding: 1rem;
+        transition: all 200ms ease;
+      }
+      .deed-item:hover {
+        background: rgba(15, 23, 42, 0.8);
+        border-color: rgba(250, 204, 21, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 0.5rem 1rem rgba(250, 204, 21, 0.2);
+      }
+      .deed-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #f8fafc;
+        margin: 0;
+      }
+      .deed-meta {
+        font-size: 0.875rem;
+        color: rgba(226, 232, 240, 0.6);
+        margin: 0.25rem 0 0 0;
+      }
+      .deed-note {
+        font-size: 0.75rem;
+        color: rgba(226, 232, 240, 0.5);
+        margin: 0.5rem 0 0 0;
+        line-height: 1.5;
+      }
+      .streak-item {
+        display: flex;
+        align-items: start;
+        gap: 0.75rem;
+        background: rgba(15, 23, 42, 0.65);
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+      }
+      .streak-dot {
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 50%;
+        background: #22c55e;
+        margin-top: 0.25rem;
+      }
+      .streak-title {
+        font-size: 0.875rem;
+        font-weight: 700;
+        color: #f8fafc;
+        margin: 0;
+      }
+      .streak-desc {
+        font-size: 0.75rem;
+        color: rgba(226, 232, 240, 0.6);
+        margin: 0;
+      }
+      .action-button {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        border: 1px solid rgba(148, 163, 184, 0.4);
+        background: rgba(15, 23, 42, 0.65);
+        color: rgba(226, 232, 240, 0.9);
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 150ms ease;
+      }
+      .action-button:hover {
+        border-color: #22c55e;
+        background: rgba(34, 197, 94, 0.15);
+        color: #22c55e;
+      }
+      .cta-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        border: 2px solid #22c55e;
+        background: linear-gradient(to right, #22c55e, #16a34a);
+        color: #fff;
+        font-size: 0.875rem;
+        font-weight: 700;
+        box-shadow: 0 0.5rem 1rem rgba(34, 197, 94, 0.3);
+        transition: all 200ms ease;
+        cursor: pointer;
+        text-decoration: none;
+      }
+      .cta-button:hover {
+        box-shadow: 0 0.75rem 1.5rem rgba(34, 197, 94, 0.4);
+        transform: translateY(-2px);
+      }
+      .account-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 0.875rem;
+      }
+      .account-label {
+        color: rgba(226, 232, 240, 0.7);
+      }
+      .account-value {
+        color: #f8fafc;
+        font-weight: 600;
+      }
+    </style>
   </head>
-  <body class="bg-slate-50 text-slate-900">
-    <div
-      class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-teal-50"
-    >
-      <header class="border-b border-slate-200 bg-white/90 backdrop-blur">
-        <div
-          class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-6 py-5"
+  <body class="landing-body">
+    <!-- Navigation Bar -->
+    <nav class="top-nav">
+      <div class="nav-brand-container">
+        <!-- Back Arrow Link -->
+        <a
+          href="dashboard.html"
+          class="nav-back-link"
+          aria-label="Back to dashboard"
         >
-          <a
-            href="dashboard.html"
-            class="flex items-center gap-2 text-lg font-semibold text-slate-900"
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="2.5"
+            stroke="currentColor"
+            class="nav-back-icon"
           >
-            <span
-              class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-teal-600 text-white"
-              aria-hidden="true"
-              >D</span
-            >
-            <span data-i18n="common.appName">Deeds</span>
-          </a>
-          <nav
-            class="flex flex-wrap items-center gap-4 text-sm text-slate-600"
-            aria-label="Primary navigation"
-          >
-            <a
-              href="dashboard.html"
-              class="hover:text-teal-700"
-              data-i18n="nav.dashboard"
-              >Dashboard</a
-            >
-            <a
-              href="choose.html"
-              class="hover:text-teal-700"
-              data-i18n="nav.choose"
-              >Choose deed</a
-            >
-            <a
-              href="submit.html"
-              class="hover:text-teal-700"
-              data-i18n="nav.submit"
-              >Submit deed</a
-            >
-            <a
-              href="leaderboard.html"
-              class="hover:text-teal-700"
-              data-i18n="nav.leaderboard"
-              >Leaderboard</a
-            >
-            <a
-              href="profile.html"
-              class="font-semibold text-teal-700 hover:text-teal-700"
-              aria-current="page"
-              data-i18n="nav.profile"
-              >Profile</a
-            >
-          </nav>
-          <div class="flex items-center gap-3">
-            <div class="flex items-center gap-2">
-              <button
-                type="button"
-                class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm transition hover:border-teal-600 hover:text-teal-700"
-                data-lang-switch="en"
-                data-i18n-label="language.englishLabel"
-                aria-label="Switch to English"
-              >
-                EN
-              </button>
-              <button
-                type="button"
-                class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm transition hover:border-teal-600 hover:text-teal-700"
-                data-lang-switch="ht"
-                data-i18n-label="language.creoleLabel"
-                aria-label="Chanje lang pou Kreyòl"
-              >
-                HT
-              </button>
-            </div>
-            <button
-              type="button"
-              class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-teal-600 hover:text-teal-700"
-              data-action="logout"
-              data-i18n="nav.logout"
-            >
-              Log out
-            </button>
-          </div>
-        </div>
-      </header>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M15.75 19.5 8.25 12l7.5-7.5"
+            />
+          </svg>
+        </a>
+        <!-- Brand Name -->
+        <span class="nav-brand-text">Deeds</span>
+      </div>
 
-      <main class="mx-auto flex max-w-5xl flex-col gap-10 px-6 py-12">
-        <section class="rounded-2xl bg-white p-8 shadow-md shadow-teal-900/5">
-          <div class="flex flex-wrap items-start justify-between gap-6">
-            <div class="flex items-center gap-4">
-              <span
-                class="inline-flex h-16 w-16 items-center justify-center rounded-full bg-teal-600 text-2xl font-semibold text-white"
-              >
+      <!-- Language Switcher -->
+      <div class="nav-lang-switcher">
+        <button
+          type="button"
+          class="landing-tag"
+          data-lang-switch="en"
+          data-i18n-label="language.englishLabel"
+          aria-label="Switch to English"
+        >
+          EN
+        </button>
+        <button
+          type="button"
+          class="landing-tag"
+          data-lang-switch="ht"
+          data-i18n-label="language.creoleLabel"
+          aria-label="Chanje lang pou Kreyòl"
+        >
+          HT
+        </button>
+      </div>
+    </nav>
+
+    <main>
+      <div class="profile-container">
+        <section class="content-card">
+          <div
+            style="
+              display: flex;
+              flex-wrap: wrap;
+              align-items: start;
+              justify-content: space-between;
+              gap: 1.5rem;
+            "
+          >
+            <div style="display: flex; align-items: center; gap: 1rem">
+              <span class="avatar">
                 <span data-profile-field="initials">D</span>
               </span>
               <div>
                 <p
-                  class="text-sm text-slate-500"
+                  style="
+                    font-size: 0.875rem;
+                    color: rgba(226, 232, 240, 0.6);
+                    margin: 0;
+                  "
                   data-i18n="profile.memberLabel"
                 >
                   Member profile
                 </p>
                 <h1
-                  class="text-3xl font-semibold tracking-tight"
+                  style="
+                    font-size: 1.875rem;
+                    font-weight: 700;
+                    color: #f8fafc;
+                    margin: 0.25rem 0 0 0;
+                  "
                   data-profile-field="name"
                 >
                   Friend
                 </h1>
-                <p class="text-sm text-slate-600" data-profile-field="email">
+                <p
+                  style="
+                    font-size: 0.875rem;
+                    color: rgba(226, 232, 240, 0.7);
+                    margin: 0.25rem 0 0 0;
+                  "
+                  data-profile-field="email"
+                >
                   —
                 </p>
               </div>
             </div>
-            <div class="grid gap-4 text-sm text-slate-700 sm:grid-cols-2">
-              <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                <p class="text-xs font-medium uppercase text-slate-500">
+            <div style="display: grid; gap: 1rem; grid-template-columns: repeat(2, 1fr)">
+              <div class="stat-box">
+                <p class="stat-label">
                   <span data-i18n="profile.memberSince">Member since</span>
                 </p>
-                <p
-                  class="mt-1 text-lg font-semibold text-slate-900"
-                  data-profile-field="createdAt"
-                >
-                  —
-                </p>
+                <p class="stat-value" data-profile-field="createdAt">—</p>
               </div>
-              <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                <p class="text-xs font-medium uppercase text-slate-500">
+              <div class="stat-box">
+                <p class="stat-label">
                   <span data-i18n="profile.deedsLogged">Deeds logged</span>
                 </p>
-                <p
-                  class="mt-1 text-lg font-semibold text-teal-700"
-                  data-profile-field="completed"
-                >
+                <p class="stat-value highlight" data-profile-field="completed">
                   0
                 </p>
               </div>
@@ -154,198 +330,239 @@
           </div>
         </section>
 
-        <section
-          class="rounded-2xl border border-slate-100 bg-white p-8 shadow-sm shadow-teal-900/5"
-        >
-          <div class="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <h2
-                class="text-lg font-semibold text-slate-900"
-                data-i18n="badges.profileTitle"
-              >
-                Status badges
-              </h2>
-              <p
-                class="mt-1 text-sm text-slate-600"
-                data-i18n="badges.profileDescription"
-              >
-                Celebrate what you've completed and what still needs review.
-              </p>
-            </div>
+        <section class="content-card">
+          <div>
+            <h2
+              style="
+                font-size: 1.25rem;
+                font-weight: 700;
+                color: #f8fafc;
+                margin: 0;
+              "
+              data-i18n="badges.profileTitle"
+            >
+              Status badges
+            </h2>
+            <p
+              style="
+                margin-top: 0.25rem;
+                font-size: 0.875rem;
+                color: rgba(226, 232, 240, 0.7);
+              "
+              data-i18n="badges.profileDescription"
+            >
+              Celebrate what you've completed and what still needs review.
+            </p>
           </div>
           <div
-            class="mt-4 grid gap-3 sm:grid-cols-2"
+            style="
+              margin-top: 1.5rem;
+              display: grid;
+              gap: 0.75rem;
+              grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+            "
             data-role="status-badges"
           ></div>
-          <dl class="mt-6 grid gap-4 text-sm text-slate-600 sm:grid-cols-3">
-            <div class="rounded-lg border border-slate-100 bg-slate-50 p-4">
-              <dt
-                class="font-medium text-slate-700"
-                data-i18n="badges.pendingLabel"
-              >
+          <dl style="margin-top: 1.5rem; display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr))">
+            <div class="stat-box">
+              <dt class="stat-label" data-i18n="badges.pendingLabel">
                 Pending
               </dt>
-              <dd
-                class="mt-1 text-lg font-semibold text-slate-900"
-                data-status-count="pending"
-              >
-                0
-              </dd>
+              <dd class="stat-value" data-status-count="pending">0</dd>
             </div>
-            <div class="rounded-lg border border-slate-100 bg-slate-50 p-4">
-              <dt
-                class="font-medium text-slate-700"
-                data-i18n="badges.verifiedLabel"
-              >
+            <div class="stat-box">
+              <dt class="stat-label" data-i18n="badges.verifiedLabel">
                 Verified
               </dt>
-              <dd
-                class="mt-1 text-lg font-semibold text-teal-700"
-                data-status-count="verified"
-              >
+              <dd class="stat-value highlight" data-status-count="verified">
                 0
               </dd>
             </div>
-            <div class="rounded-lg border border-slate-100 bg-slate-50 p-4">
-              <dt
-                class="font-medium text-slate-700"
-                data-i18n="badges.latestLabel"
-              >
+            <div class="stat-box">
+              <dt class="stat-label" data-i18n="badges.latestLabel">
                 Last verified
               </dt>
-              <dd
-                class="mt-1 text-lg font-semibold text-slate-900"
-                data-status-latest
-              >
-                —
-              </dd>
+              <dd class="stat-value" data-status-latest>—</dd>
             </div>
           </dl>
         </section>
 
-        <section class="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-          <article class="rounded-2xl border border-slate-100 bg-white p-6">
-            <div class="flex flex-wrap items-start justify-between gap-4">
-              <h2 class="text-lg font-semibold text-slate-900">Preferences</h2>
+        <section style="display: grid; gap: 1.5rem; grid-template-columns: 1.4fr 1fr">
+          <article class="content-card">
+            <div
+              style="
+                display: flex;
+                flex-wrap: wrap;
+                align-items: start;
+                justify-content: space-between;
+                gap: 1rem;
+                margin-bottom: 1rem;
+              "
+            >
+              <h2
+                style="
+                  font-size: 1.25rem;
+                  font-weight: 700;
+                  color: #f8fafc;
+                  margin: 0;
+                "
+              >
+                Preferences
+              </h2>
               <a
                 href="choose.html"
-                class="text-sm text-teal-700 hover:text-teal-800"
+                style="
+                  font-size: 0.875rem;
+                  color: #22c55e;
+                  text-decoration: none;
+                "
                 >Find new deeds</a
               >
             </div>
-            <dl class="mt-4 grid gap-4 text-sm text-slate-600 sm:grid-cols-2">
-              <div class="rounded-xl bg-slate-50 p-4">
-                <dt class="font-semibold text-slate-800">Focus areas</dt>
-                <dd class="mt-1">Food access, youth mentorship, elder care</dd>
+            <dl style="display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr))">
+              <div class="pref-item">
+                <dt class="pref-title">Focus areas</dt>
+                <dd class="pref-desc">
+                  Food access, youth mentorship, elder care
+                </dd>
               </div>
-              <div class="rounded-xl bg-slate-50 p-4">
-                <dt class="font-semibold text-slate-800">Availability</dt>
-                <dd class="mt-1">Weeknights after 6 pm, Saturdays</dd>
+              <div class="pref-item">
+                <dt class="pref-title">Availability</dt>
+                <dd class="pref-desc">Weeknights after 6 pm, Saturdays</dd>
               </div>
-              <div class="rounded-xl bg-slate-50 p-4">
-                <dt class="font-semibold text-slate-800">Skills to offer</dt>
-                <dd class="mt-1">Cooking, tutoring, translation (Spanish)</dd>
+              <div class="pref-item">
+                <dt class="pref-title">Skills to offer</dt>
+                <dd class="pref-desc">
+                  Cooking, tutoring, translation (Spanish)
+                </dd>
               </div>
-              <div class="rounded-xl bg-slate-50 p-4">
-                <dt class="font-semibold text-slate-800">
-                  Accessibility notes
-                </dt>
-                <dd class="mt-1">
+              <div class="pref-item">
+                <dt class="pref-title">Accessibility notes</dt>
+                <dd class="pref-desc">
                   Prefers step-free locations, can provide transport
                 </dd>
               </div>
             </dl>
           </article>
 
-          <aside class="grid gap-6">
-            <article
-              class="rounded-2xl border border-slate-100 bg-white p-6 text-sm text-slate-700"
-            >
-              <h2 class="text-base font-semibold text-slate-900">Account</h2>
-              <dl class="mt-3 space-y-3">
-                <div class="flex items-center justify-between">
-                  <dt>Phone number</dt>
-                  <dd class="font-medium text-slate-900">Add number</dd>
+          <aside style="display: grid; gap: 1.5rem; grid-auto-rows: max-content">
+            <article class="content-card">
+              <h2
+                style="
+                  font-size: 1rem;
+                  font-weight: 700;
+                  color: #f8fafc;
+                  margin: 0 0 1rem 0;
+                "
+              >
+                Account
+              </h2>
+              <dl style="display: flex; flex-direction: column; gap: 0.75rem">
+                <div class="account-row">
+                  <dt class="account-label">Phone number</dt>
+                  <dd class="account-value">Add number</dd>
                 </div>
-                <div class="flex items-center justify-between">
-                  <dt>Notification style</dt>
-                  <dd class="font-medium text-slate-900">Weekly digest</dd>
+                <div class="account-row">
+                  <dt class="account-label">Notification style</dt>
+                  <dd class="account-value">Weekly digest</dd>
                 </div>
-                <div class="flex items-center justify-between">
-                  <dt>Language</dt>
-                  <dd class="font-medium text-slate-900">English</dd>
+                <div class="account-row">
+                  <dt class="account-label">Language</dt>
+                  <dd class="account-value">English</dd>
                 </div>
               </dl>
-              <button
-                type="button"
-                class="mt-4 w-full rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:border-teal-600 hover:text-teal-700"
-              >
+              <button type="button" class="action-button" style="margin-top: 1rem">
                 Edit profile
               </button>
             </article>
 
-            <article
-              class="rounded-2xl border border-slate-100 bg-white p-6 text-sm text-slate-700"
-            >
-              <h2 class="text-base font-semibold text-slate-900">Streak log</h2>
-              <ul class="mt-3 space-y-3">
-                <li class="flex items-start gap-3 rounded-lg bg-slate-50 p-3">
-                  <span class="mt-1 h-2 w-2 rounded-full bg-teal-500"></span>
+            <article class="content-card">
+              <h2
+                style="
+                  font-size: 1rem;
+                  font-weight: 700;
+                  color: #f8fafc;
+                  margin: 0 0 1rem 0;
+                "
+              >
+                Streak log
+              </h2>
+              <ul style="list-style: none; padding: 0; margin: 0 0 1rem 0; display: flex; flex-direction: column; gap: 0.75rem">
+                <li class="streak-item">
+                  <span class="streak-dot"></span>
                   <div>
-                    <p class="font-semibold">3-day streak</p>
-                    <p class="text-xs text-slate-500">
-                      Logged a deed every weekday
-                    </p>
+                    <p class="streak-title">3-day streak</p>
+                    <p class="streak-desc">Logged a deed every weekday</p>
                   </div>
                 </li>
-                <li class="flex items-start gap-3 rounded-lg bg-slate-50 p-3">
-                  <span class="mt-1 h-2 w-2 rounded-full bg-teal-500"></span>
+                <li class="streak-item">
+                  <span class="streak-dot"></span>
                   <div>
-                    <p class="font-semibold">New badge unlocked</p>
-                    <p class="text-xs text-slate-500">
-                      Awarded “Block Captain” for 25 deeds overall.
+                    <p class="streak-title">New badge unlocked</p>
+                    <p class="streak-desc">
+                      Awarded "Block Captain" for 25 deeds overall.
                     </p>
                   </div>
                 </li>
               </ul>
-              <a
-                href="leaderboard.html"
-                class="mt-4 inline-flex items-center justify-center rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700"
-              >
+              <a href="leaderboard.html" class="cta-button">
                 View community leaderboard
               </a>
             </article>
           </aside>
         </section>
 
-        <section class="rounded-2xl border border-slate-100 bg-white p-6">
-          <div class="flex flex-wrap items-center justify-between gap-4">
-            <h2 class="text-lg font-semibold text-slate-900">Recent deeds</h2>
+        <section class="content-card">
+          <div
+            style="
+              display: flex;
+              flex-wrap: wrap;
+              align-items: center;
+              justify-content: space-between;
+              gap: 1rem;
+              margin-bottom: 1rem;
+            "
+          >
+            <h2
+              style="
+                font-size: 1.25rem;
+                font-weight: 700;
+                color: #f8fafc;
+                margin: 0;
+              "
+            >
+              Recent deeds
+            </h2>
             <a
               href="submit.html"
-              class="text-sm text-teal-700 hover:text-teal-800"
+              style="
+                font-size: 0.875rem;
+                color: #22c55e;
+                text-decoration: none;
+              "
               >Log another deed</a
             >
           </div>
-          <ul class="mt-4 space-y-4 text-sm text-slate-700">
-            <li class="rounded-xl border border-slate-100 bg-slate-50 p-4">
-              <p class="font-semibold">Delivered groceries to Mrs. Ortiz</p>
-              <p class="mt-1 text-slate-600">June 11 • Food access</p>
-              <p class="mt-2 text-xs text-slate-500">
+          <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 1rem">
+            <li class="deed-item">
+              <p class="deed-title">Delivered groceries to Mrs. Ortiz</p>
+              <p class="deed-meta">June 11 • Food access</p>
+              <p class="deed-note">
                 Coordinated with the Elm Street group to share leftovers.
               </p>
             </li>
-            <li class="rounded-xl border border-slate-100 bg-slate-50 p-4">
-              <p class="font-semibold">Hosted Saturday park clean-up</p>
-              <p class="mt-1 text-slate-600">June 8 • Environment</p>
-              <p class="mt-2 text-xs text-slate-500">
+            <li class="deed-item">
+              <p class="deed-title">Hosted Saturday park clean-up</p>
+              <p class="deed-meta">June 8 • Environment</p>
+              <p class="deed-note">
                 Collected 5 bags of trash and logged them with city services.
               </p>
             </li>
           </ul>
         </section>
-      </main>
-    </div>
+      </div>
+    </main>
+
     <script src="script.js" defer></script>
   </body>
 </html>

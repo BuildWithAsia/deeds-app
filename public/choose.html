@@ -3,128 +3,296 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Deeds | Choose a deed</title>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.2/dist/tailwind.min.css"
-      integrity="sha384-4VhpjS/4jGouVp21Hb+Jseb3CidRubc4QpfAlWTMwVzKhI6+w4n1vCtbmZh9rqxW"
-      crossorigin="anonymous"
+    <meta
+      name="description"
+      content="Choose a deed that fits your schedule and make an impact today"
     />
+    <title>Deeds | Choose a deed</title>
+    <meta name="theme-color" content="#00B7B3" />
+    <link rel="manifest" href="/manifest.json" />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href="/icons/icon-192.png"
+    />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <link rel="stylesheet" href="styles.css" />
+    <style>
+      .choose-container {
+        max-width: 72rem;
+        margin: 0 auto;
+        padding: clamp(2rem, 4vw, 3rem);
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 2.5rem;
+      }
+      .gradient-title {
+        background: linear-gradient(
+          120deg,
+          #facc15 0%,
+          #f97316 40%,
+          #22c55e 100%
+        );
+        -webkit-background-clip: text;
+        color: transparent;
+        font-size: clamp(1.8rem, 3vw, 2.5rem);
+        font-weight: 700;
+        margin: 0;
+      }
+      .content-card {
+        background: rgba(10, 17, 40, 0.75);
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        border-radius: 1.25rem;
+        padding: 2rem;
+        box-shadow: 0 1rem 2rem rgba(4, 6, 18, 0.5);
+        backdrop-filter: blur(10px);
+        position: relative;
+        overflow: hidden;
+      }
+      .content-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: radial-gradient(
+          circle at top right,
+          rgba(250, 204, 21, 0.15),
+          transparent 60%
+        );
+        pointer-events: none;
+      }
+      .info-banner {
+        border: 2px dashed rgba(45, 212, 191, 0.3);
+        border-radius: 0.75rem;
+        padding: 1rem 1.25rem;
+        background: rgba(20, 184, 166, 0.1);
+        color: rgba(226, 232, 240, 0.85);
+        font-size: 0.875rem;
+      }
+      .deed-option {
+        background: rgba(15, 23, 42, 0.65);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        border-radius: 0.75rem;
+        padding: 1rem;
+        transition: all 200ms ease;
+      }
+      .deed-option:hover {
+        background: rgba(15, 23, 42, 0.8);
+        border-color: rgba(250, 204, 21, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 0.5rem 1rem rgba(250, 204, 21, 0.2);
+      }
+      .deed-option-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #f8fafc;
+        margin: 0;
+      }
+      .deed-option-desc {
+        font-size: 0.875rem;
+        color: rgba(226, 232, 240, 0.7);
+        margin: 0.5rem 0 0 0;
+        line-height: 1.5;
+      }
+      .deed-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 999px;
+        background: rgba(30, 41, 59, 0.6);
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        font-size: 0.75rem;
+      }
+      .badge-dot {
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 50%;
+      }
+      .badge-dot.teal {
+        background: #2dd4bf;
+      }
+      .badge-dot.amber {
+        background: #fbbf24;
+      }
+      .badge-dot.indigo {
+        background: #818cf8;
+      }
+      .deed-button {
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.5rem;
+        background: rgba(34, 197, 94, 0.15);
+        border: 1px solid rgba(34, 197, 94, 0.4);
+        color: #22c55e;
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 150ms ease;
+      }
+      .deed-button:hover {
+        background: rgba(34, 197, 94, 0.25);
+        border-color: #22c55e;
+        transform: scale(1.05);
+      }
+      .cta-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        border: 2px solid #22c55e;
+        background: linear-gradient(to right, #22c55e, #16a34a);
+        color: #fff;
+        font-size: 0.875rem;
+        font-weight: 700;
+        box-shadow: 0 0.5rem 1rem rgba(34, 197, 94, 0.3);
+        transition: all 200ms ease;
+        cursor: pointer;
+        text-decoration: none;
+      }
+      .cta-button:hover {
+        box-shadow: 0 0.75rem 1.5rem rgba(34, 197, 94, 0.4);
+        transform: translateY(-2px);
+      }
+      .filter-grid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+      }
+      .filter-item {
+        background: rgba(15, 23, 42, 0.65);
+        border-radius: 0.75rem;
+        padding: 1rem;
+      }
+      .filter-title {
+        font-size: 0.875rem;
+        font-weight: 700;
+        color: rgba(226, 232, 240, 0.9);
+        margin: 0 0 0.5rem 0;
+      }
+      .filter-desc {
+        font-size: 0.75rem;
+        color: rgba(226, 232, 240, 0.6);
+        margin: 0;
+        line-height: 1.5;
+      }
+      .time-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.35rem 0.75rem;
+        border-radius: 999px;
+        background: rgba(34, 197, 94, 0.15);
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        color: #22c55e;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05rem;
+      }
+      .section-grid {
+        display: grid;
+        gap: 2rem;
+        grid-template-columns: 1.4fr 1fr;
+      }
+      @media (max-width: 768px) {
+        .section-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
   </head>
-  <body class="bg-slate-50 text-slate-900">
-    <div
-      class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-teal-50"
-    >
-      <header class="border-b border-slate-200 bg-white/90 backdrop-blur">
-        <div
-          class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-6 py-5"
+  <body class="landing-body">
+    <!-- Navigation Bar -->
+    <nav class="top-nav">
+      <div class="nav-brand-container">
+        <!-- Back Arrow Link -->
+        <a
+          href="dashboard.html"
+          class="nav-back-link"
+          aria-label="Back to dashboard"
         >
-          <a
-            href="dashboard.html"
-            class="flex items-center gap-2 text-lg font-semibold text-slate-900"
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="2.5"
+            stroke="currentColor"
+            class="nav-back-icon"
           >
-            <span
-              class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-teal-600 text-white"
-              aria-hidden="true"
-              >D</span
-            >
-            <span data-i18n="common.appName">Deeds</span>
-          </a>
-          <nav
-            class="flex flex-wrap items-center gap-4 text-sm text-slate-600"
-            aria-label="Primary navigation"
-          >
-            <a
-              href="dashboard.html"
-              class="hover:text-teal-700"
-              data-i18n="nav.dashboard"
-              >Dashboard</a
-            >
-            <a
-              href="choose.html"
-              class="font-semibold text-teal-700 hover:text-teal-700"
-              aria-current="page"
-              data-i18n="nav.choose"
-              >Choose deed</a
-            >
-            <a
-              href="submit.html"
-              class="hover:text-teal-700"
-              data-i18n="nav.submit"
-              >Submit deed</a
-            >
-            <a
-              href="leaderboard.html"
-              class="hover:text-teal-700"
-              data-i18n="nav.leaderboard"
-              >Leaderboard</a
-            >
-            <a
-              href="profile.html"
-              class="hover:text-teal-700"
-              data-i18n="nav.profile"
-              >Profile</a
-            >
-          </nav>
-          <div class="flex items-center gap-3">
-            <div class="flex items-center gap-2">
-              <button
-                type="button"
-                class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm transition hover:border-teal-600 hover:text-teal-700"
-                data-lang-switch="en"
-                data-i18n-label="language.englishLabel"
-                aria-label="Switch to English"
-              >
-                EN
-              </button>
-              <button
-                type="button"
-                class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm transition hover:border-teal-600 hover:text-teal-700"
-                data-lang-switch="ht"
-                data-i18n-label="language.creoleLabel"
-                aria-label="Chanje lang pou Kreyòl"
-              >
-                HT
-              </button>
-            </div>
-            <button
-              type="button"
-              class="inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-teal-600 hover:text-teal-700"
-              data-action="logout"
-              data-i18n="nav.logout"
-            >
-              Log out
-            </button>
-          </div>
-        </div>
-      </header>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M15.75 19.5 8.25 12l7.5-7.5"
+            />
+          </svg>
+        </a>
+        <!-- Brand Name -->
+        <span class="nav-brand-text">Deeds</span>
+      </div>
 
-      <main class="mx-auto flex max-w-5xl flex-col gap-10 px-6 py-12">
-        <section class="rounded-2xl bg-white p-8 shadow-md shadow-teal-900/5">
+      <!-- Language Switcher -->
+      <div class="nav-lang-switcher">
+        <button
+          type="button"
+          class="landing-tag"
+          data-lang-switch="en"
+          data-i18n-label="language.englishLabel"
+          aria-label="Switch to English"
+        >
+          EN
+        </button>
+        <button
+          type="button"
+          class="landing-tag"
+          data-lang-switch="ht"
+          data-i18n-label="language.creoleLabel"
+          aria-label="Chanje lang pou Kreyòl"
+        >
+          HT
+        </button>
+      </div>
+    </nav>
+
+    <main>
+      <div class="choose-container">
+        <section class="content-card">
           <p
-            class="text-sm font-medium uppercase tracking-[0.18em] text-teal-600"
+            style="
+              font-size: 0.75rem;
+              letter-spacing: 0.18rem;
+              text-transform: uppercase;
+              color: #2dd4bf;
+              margin: 0 0 0.75rem 0;
+            "
             data-i18n="choose.heroEyebrow"
           >
             Plan your next impact
           </p>
-          <div class="mt-3 flex flex-wrap items-center justify-between gap-4">
-            <h1
-              class="text-3xl font-semibold tracking-tight"
-              data-i18n="choose.heroTitle"
-            >
+          <div
+            style="
+              display: flex;
+              flex-wrap: wrap;
+              align-items: center;
+              justify-content: space-between;
+              gap: 1rem;
+            "
+          >
+            <h1 class="gradient-title" data-i18n="choose.heroTitle">
               Choose a deed that fits your schedule
             </h1>
-            <a
-              href="submit.html"
-              class="inline-flex items-center justify-center rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700"
-              data-i18n="choose.heroButton"
-            >
+            <a href="submit.html" class="cta-button" data-i18n="choose.heroButton">
               Already helped? Log it now
             </a>
           </div>
           <p
-            class="mt-3 max-w-3xl text-base text-slate-600"
+            style="
+              margin-top: 0.75rem;
+              color: rgba(226, 232, 240, 0.8);
+              line-height: 1.6;
+              max-width: 48rem;
+            "
             data-i18n="choose.heroDescription"
           >
             Browse curated opportunities from trusted community partners. Each
@@ -134,7 +302,7 @@
         </section>
 
         <div
-          class="rounded-2xl border border-teal-100 bg-white/70 px-5 py-4 text-sm text-slate-600"
+          class="info-banner"
           data-role="choose-feedback"
           aria-live="polite"
         >
@@ -143,47 +311,68 @@
           >
         </div>
 
-        <section class="grid gap-6 md:grid-cols-[1.4fr_1fr]">
-          <div class="grid gap-6">
-            <article class="rounded-2xl border border-slate-100 bg-white p-6">
-              <div class="flex flex-wrap items-start justify-between gap-4">
+        <div class="section-grid">
+          <div style="display: flex; flex-direction: column; gap: 1.5rem">
+            <article class="content-card">
+              <div
+                style="
+                  display: flex;
+                  flex-wrap: wrap;
+                  align-items: start;
+                  justify-content: space-between;
+                  gap: 1rem;
+                  margin-bottom: 1.5rem;
+                "
+              >
                 <div>
-                  <h2 class="text-lg font-semibold text-slate-900">
+                  <h2
+                    style="
+                      font-size: 1.25rem;
+                      font-weight: 700;
+                      color: #f8fafc;
+                      margin: 0;
+                    "
+                  >
                     Featured for this week
                   </h2>
-                  <p class="mt-1 text-sm text-slate-600">
+                  <p
+                    style="
+                      margin-top: 0.25rem;
+                      font-size: 0.875rem;
+                      color: rgba(226, 232, 240, 0.7);
+                    "
+                  >
                     Quick wins sourced from neighborhood requests.
                   </p>
                 </div>
-                <span
-                  class="inline-flex items-center gap-1 rounded-full bg-teal-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-teal-700"
-                >
-                  30-60 min
-                </span>
+                <span class="time-badge">30-60 min</span>
               </div>
-              <ul class="mt-4 space-y-4 text-sm text-slate-700">
-                <li class="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                  <p class="font-semibold">Deliver a prescription</p>
-                  <p class="mt-1 text-slate-600">
+              <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 1rem">
+                <li class="deed-option">
+                  <p class="deed-option-title">Deliver a prescription</p>
+                  <p class="deed-option-desc">
                     Pick up medication for Mr. Gonzales by 5 pm today.
                   </p>
                   <div
-                    class="mt-3 flex flex-wrap items-center justify-between gap-3"
+                    style="
+                      margin-top: 0.75rem;
+                      display: flex;
+                      flex-wrap: wrap;
+                      align-items: center;
+                      justify-content: space-between;
+                      gap: 0.75rem;
+                    "
                   >
-                    <div
-                      class="flex flex-wrap items-center gap-3 text-xs text-slate-500"
-                    >
-                      <span
-                        class="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 shadow-sm"
-                      >
-                        <span class="h-2 w-2 rounded-full bg-teal-500"></span>
+                    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; font-size: 0.75rem; color: rgba(226, 232, 240, 0.6)">
+                      <span class="deed-badge">
+                        <span class="badge-dot teal"></span>
                         Health
                       </span>
                       <span>5 volunteers needed</span>
                     </div>
                     <button
                       type="button"
-                      class="inline-flex items-center justify-center rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-teal-700 shadow-sm transition hover:bg-teal-50 hover:text-teal-800"
+                      class="deed-button"
                       data-deed-option
                       data-deed-id="deliver-prescription"
                       data-deed-title="Deliver a prescription"
@@ -195,28 +384,31 @@
                     </button>
                   </div>
                 </li>
-                <li class="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                  <p class="font-semibold">Prep meal kits</p>
-                  <p class="mt-1 text-slate-600">
+                <li class="deed-option">
+                  <p class="deed-option-title">Prep meal kits</p>
+                  <p class="deed-option-desc">
                     Join the kitchen crew to assemble 20 family meal kits.
                   </p>
                   <div
-                    class="mt-3 flex flex-wrap items-center justify-between gap-3"
+                    style="
+                      margin-top: 0.75rem;
+                      display: flex;
+                      flex-wrap: wrap;
+                      align-items: center;
+                      justify-content: space-between;
+                      gap: 0.75rem;
+                    "
                   >
-                    <div
-                      class="flex flex-wrap items-center gap-3 text-xs text-slate-500"
-                    >
-                      <span
-                        class="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 shadow-sm"
-                      >
-                        <span class="h-2 w-2 rounded-full bg-amber-500"></span>
+                    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; font-size: 0.75rem; color: rgba(226, 232, 240, 0.6)">
+                      <span class="deed-badge">
+                        <span class="badge-dot amber"></span>
                         Food security
                       </span>
                       <span>Saturday • 10:00 am</span>
                     </div>
                     <button
                       type="button"
-                      class="inline-flex items-center justify-center rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-teal-700 shadow-sm transition hover:bg-teal-50 hover:text-teal-800"
+                      class="deed-button"
                       data-deed-option
                       data-deed-id="prep-meal-kits"
                       data-deed-title="Prep meal kits"
@@ -228,28 +420,31 @@
                     </button>
                   </div>
                 </li>
-                <li class="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                  <p class="font-semibold">Coach homework hour</p>
-                  <p class="mt-1 text-slate-600">
+                <li class="deed-option">
+                  <p class="deed-option-title">Coach homework hour</p>
+                  <p class="deed-option-desc">
                     Provide one-on-one support for two middle schoolers.
                   </p>
                   <div
-                    class="mt-3 flex flex-wrap items-center justify-between gap-3"
+                    style="
+                      margin-top: 0.75rem;
+                      display: flex;
+                      flex-wrap: wrap;
+                      align-items: center;
+                      justify-content: space-between;
+                      gap: 0.75rem;
+                    "
                   >
-                    <div
-                      class="flex flex-wrap items-center gap-3 text-xs text-slate-500"
-                    >
-                      <span
-                        class="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 shadow-sm"
-                      >
-                        <span class="h-2 w-2 rounded-full bg-indigo-500"></span>
+                    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; font-size: 0.75rem; color: rgba(226, 232, 240, 0.6)">
+                      <span class="deed-badge">
+                        <span class="badge-dot indigo"></span>
                         Youth
                       </span>
                       <span>Virtual • 45 min</span>
                     </div>
                     <button
                       type="button"
-                      class="inline-flex items-center justify-center rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-teal-700 shadow-sm transition hover:bg-teal-50 hover:text-teal-800"
+                      class="deed-button"
                       data-deed-option
                       data-deed-id="coach-homework-hour"
                       data-deed-title="Coach homework hour"
@@ -264,66 +459,112 @@
               </ul>
             </article>
 
-            <article class="rounded-2xl border border-slate-100 bg-white p-6">
-              <div class="flex flex-wrap items-center justify-between gap-4">
-                <h2 class="text-lg font-semibold text-slate-900">Filters</h2>
+            <article class="content-card">
+              <div
+                style="
+                  display: flex;
+                  flex-wrap: wrap;
+                  align-items: center;
+                  justify-content: space-between;
+                  gap: 1rem;
+                  margin-bottom: 1rem;
+                "
+              >
+                <h2
+                  style="
+                    font-size: 1.25rem;
+                    font-weight: 700;
+                    color: #f8fafc;
+                    margin: 0;
+                  "
+                >
+                  Filters
+                </h2>
                 <a
                   href="leaderboard.html"
-                  class="text-sm text-teal-700 hover:text-teal-800"
+                  style="
+                    font-size: 0.875rem;
+                    color: #22c55e;
+                    text-decoration: none;
+                  "
                   >See who's leading</a
                 >
               </div>
-              <dl class="mt-4 grid gap-4 text-sm text-slate-600 md:grid-cols-2">
-                <div class="rounded-xl bg-slate-50 p-4">
-                  <dt class="font-semibold text-slate-800">Time</dt>
-                  <dd class="mt-1">Under 30 min, 30-60 min, Half day</dd>
+              <div class="filter-grid">
+                <div class="filter-item">
+                  <dt class="filter-title">Time</dt>
+                  <dd class="filter-desc">Under 30 min, 30-60 min, Half day</dd>
                 </div>
-                <div class="rounded-xl bg-slate-50 p-4">
-                  <dt class="font-semibold text-slate-800">Skills</dt>
-                  <dd class="mt-1">
+                <div class="filter-item">
+                  <dt class="filter-title">Skills</dt>
+                  <dd class="filter-desc">
                     Cooking, tutoring, driving, phone banking
                   </dd>
                 </div>
-                <div class="rounded-xl bg-slate-50 p-4">
-                  <dt class="font-semibold text-slate-800">Accessibility</dt>
-                  <dd class="mt-1">
+                <div class="filter-item">
+                  <dt class="filter-title">Accessibility</dt>
+                  <dd class="filter-desc">
                     Family friendly, virtual, step-free access
                   </dd>
                 </div>
-                <div class="rounded-xl bg-slate-50 p-4">
-                  <dt class="font-semibold text-slate-800">Impact areas</dt>
-                  <dd class="mt-1">Health, housing, environment, mutual aid</dd>
+                <div class="filter-item">
+                  <dt class="filter-title">Impact areas</dt>
+                  <dd class="filter-desc">Health, housing, environment, mutual aid</dd>
                 </div>
-              </dl>
+              </div>
             </article>
           </div>
 
-          <aside
-            class="flex h-max flex-col gap-6 rounded-2xl border border-slate-100 bg-white p-6"
-          >
-            <div>
-              <h2 class="text-base font-semibold text-slate-900">
+          <aside class="content-card" style="height: max-content">
+            <div style="margin-bottom: 1.5rem">
+              <h2
+                style="
+                  font-size: 1rem;
+                  font-weight: 700;
+                  color: #f8fafc;
+                  margin: 0;
+                "
+              >
                 Suggested for you
               </h2>
-              <p class="mt-1 text-sm text-slate-600">
+              <p
+                style="
+                  margin-top: 0.25rem;
+                  font-size: 0.875rem;
+                  color: rgba(226, 232, 240, 0.7);
+                "
+              >
                 Based on your recent activity and saved preferences.
               </p>
             </div>
-            <ul class="space-y-4 text-sm text-slate-700">
-              <li class="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                <p class="font-semibold">Neighborhood check-in calls</p>
-                <p class="mt-1 text-slate-600">
+            <ul style="list-style: none; padding: 0; margin: 0 0 1.5rem 0; display: flex; flex-direction: column; gap: 1rem">
+              <li class="deed-option">
+                <p class="deed-option-title">Neighborhood check-in calls</p>
+                <p class="deed-option-desc">
                   Spend 15 minutes calling elders to confirm weekly needs.
                 </p>
                 <div
-                  class="mt-3 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500"
+                  style="
+                    margin-top: 0.75rem;
+                    display: flex;
+                    flex-wrap: wrap;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 0.75rem;
+                  "
                 >
-                  <span class="uppercase tracking-wide text-teal-600"
+                  <span
+                    style="
+                      font-size: 0.75rem;
+                      text-transform: uppercase;
+                      letter-spacing: 0.05rem;
+                      color: #2dd4bf;
+                    "
                     >Perfect for today</span
                   >
                   <button
                     type="button"
-                    class="inline-flex items-center justify-center rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-teal-700 shadow-sm transition hover:bg-teal-50 hover:text-teal-800"
+                    class="deed-button"
                     data-deed-option
                     data-deed-id="check-in-calls"
                     data-deed-title="Neighborhood check-in calls"
@@ -335,18 +576,25 @@
                   </button>
                 </div>
               </li>
-              <li class="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                <p class="font-semibold">Park clean-up crew</p>
-                <p class="mt-1 text-slate-600">
+              <li class="deed-option">
+                <p class="deed-option-title">Park clean-up crew</p>
+                <p class="deed-option-desc">
                   Join Sunday morning's litter sweep at Elm Park.
                 </p>
                 <div
-                  class="mt-3 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500"
+                  style="
+                    margin-top: 0.75rem;
+                    display: flex;
+                    flex-wrap: wrap;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 0.75rem;
+                  "
                 >
-                  <span>Spots left: 3</span>
+                  <span style="font-size: 0.75rem; color: rgba(226, 232, 240, 0.6)">Spots left: 3</span>
                   <button
                     type="button"
-                    class="inline-flex items-center justify-center rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-teal-700 shadow-sm transition hover:bg-teal-50 hover:text-teal-800"
+                    class="deed-button"
                     data-deed-option
                     data-deed-id="park-cleanup"
                     data-deed-title="Park clean-up crew"
@@ -358,18 +606,25 @@
                   </button>
                 </div>
               </li>
-              <li class="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                <p class="font-semibold">Mentor orientation</p>
-                <p class="mt-1 text-slate-600">
+              <li class="deed-option">
+                <p class="deed-option-title">Mentor orientation</p>
+                <p class="deed-option-desc">
                   Learn how to become a weekly math mentor in 45 minutes.
                 </p>
                 <div
-                  class="mt-3 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500"
+                  style="
+                    margin-top: 0.75rem;
+                    display: flex;
+                    flex-wrap: wrap;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 0.75rem;
+                  "
                 >
-                  <span>Next session: Thu 6:30 pm</span>
+                  <span style="font-size: 0.75rem; color: rgba(226, 232, 240, 0.6)">Next session: Thu 6:30 pm</span>
                   <button
                     type="button"
-                    class="inline-flex items-center justify-center rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-teal-700 shadow-sm transition hover:bg-teal-50 hover:text-teal-800"
+                    class="deed-button"
                     data-deed-option
                     data-deed-id="mentor-orientation"
                     data-deed-title="Mentor orientation"
@@ -384,14 +639,16 @@
             </ul>
             <a
               href="submit.html"
-              class="inline-flex items-center justify-center rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700"
+              class="cta-button"
+              style="width: 100%"
             >
               Ready to report a deed?
             </a>
           </aside>
-        </section>
-      </main>
-    </div>
+        </div>
+      </div>
+    </main>
+
     <script src="script.js" defer></script>
   </body>
 </html>
