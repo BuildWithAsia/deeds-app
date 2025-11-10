@@ -288,7 +288,11 @@ async function fetchQueue() {
 
   try {
     const token = activeProfile?.sessionToken;
+    console.log("[Verify Queue] Active profile:", activeProfile);
+    console.log("[Verify Queue] Token present:", !!token);
+
     if (!token) {
+      console.error("[Verify Queue] No session token found");
       setFlash(
         t(
           "verify.missingToken",
@@ -300,6 +304,7 @@ async function fetchQueue() {
       return;
     }
 
+    console.log("[Verify Queue] Fetching /api/deeds?status=pending");
     const response = await fetch("/api/deeds?status=pending", {
       headers: {
         Accept: "application/json",
@@ -307,10 +312,14 @@ async function fetchQueue() {
       },
     });
 
+    console.log("[Verify Queue] Response status:", response.status);
+
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error("[Verify Queue] Failed:", response.status, errorText);
       const message = t(
         "verify.loadError",
-        `Unable to load pending deeds (status ${response.status}).`,
+        `Unable to load pending deeds (status ${response.status}). Check console for details.`,
         { status: response.status },
       );
       setFlash(message, "error");
@@ -318,7 +327,9 @@ async function fetchQueue() {
     }
 
     const data = await response.json();
+    console.log("[Verify Queue] Received data:", data);
     const items = Array.isArray(data) ? data : [];
+    console.log("[Verify Queue] Items count:", items.length);
 
     // Filter to only show pending deeds (auto-remove verified)
     const pendingItems = items.filter((item) => item?.status === "pending");
