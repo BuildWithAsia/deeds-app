@@ -8,25 +8,6 @@ async function parseJsonBody(request) {
   }
 }
 
-const STATIC_PAGE_ROUTES = new Map([
-  ["/choose", "/choose.html"],
-  ["/leaderboard", "/leaderboard.html"],
-  ["/profile", "/profile.html"],
-  ["/submit", "/submit.html"],
-  ["/admin", "/admin/dashboard.html"],
-  ["/admin/dashboard", "/admin/dashboard.html"],
-  ["/admin/verify", "/admin/verify.html"],
-]);
-
-// Admin-only routes that require authentication
-const ADMIN_ROUTES = new Set([
-  "/admin",
-  "/admin/dashboard",
-  "/admin/dashboard.html",
-  "/admin/verify",
-  "/admin/verify.html",
-]);
-
 function sanitizeText(value) {
   if (!value && value !== 0) return "";
   return String(value).replace(/\s+/g, " ").trim();
@@ -168,9 +149,16 @@ async function handleSignup(request, env) {
     .bind(name, email, hash, created)
     .run();
   const token = await createSessionToken(res.meta.last_row_id, "user", resolveSessionSecret(env));
-  return responseWithMessage("Signup successful.", 201, {
+
+  // Set secure session cookie
+  const response = responseWithMessage("Signup successful.", 201, {
     profile: { id: res.meta.last_row_id, name, email, role: "user", sessionToken: token },
   });
+  response.headers.set(
+    "Set-Cookie",
+    `deeds_session=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${30 * 24 * 60 * 60}`
+  );
+  return response;
 }
 
 async function handleLogin(request, env) {
@@ -191,7 +179,9 @@ async function handleLogin(request, env) {
   if (await hashPassword(password) !== user.password_hash)
     return responseWithMessage("Invalid credentials.", 401);
   const token = await createSessionToken(user.id, user.role, resolveSessionSecret(env));
-  return responseWithMessage(`Welcome back, ${user.name}!`, 200, {
+
+  // Set secure session cookie
+  const response = responseWithMessage(`Welcome back, ${user.name}!`, 200, {
     profile: {
       id: user.id,
       name: user.name,
@@ -202,6 +192,21 @@ async function handleLogin(request, env) {
       sessionToken: token,
     },
   });
+  response.headers.set(
+    "Set-Cookie",
+    `deeds_session=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${30 * 24 * 60 * 60}`
+  );
+  return response;
+}
+
+async function handleLogout(request, env) {
+  // Clear the session cookie
+  const response = responseWithMessage("Logged out successfully.", 200);
+  response.headers.set(
+    "Set-Cookie",
+    `deeds_session=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0`
+  );
+  return response;
 }
 
 // ========== DEEDS ROUTES ==========
@@ -317,7 +322,7 @@ async function handleGetDeeds(request, env) {
 
   // Build dynamic query based on filters
   let query = `SELECT d.id, d.user_id, d.title, d.description, d.category, d.proof_url,
-    d.impact, d.duration, d.status, d.credits, d.verified_at, d.created_at,
+    d.impact, d.duration, d.status, d.verified_at, d.created_at,
     u.name as user_name, u.email as user_email
     FROM deeds d
     LEFT JOIN users u ON d.user_id = u.id
@@ -361,7 +366,6 @@ async function handleGetDeeds(request, env) {
       impact: d.impact || "",
       duration: d.duration || "",
       status: d.status,
-      credits: Number(d.credits ?? 0),
       verified_at: d.verified_at,
       created_at: d.created_at,
     }));
@@ -445,14 +449,57 @@ export default {
         },
       });
 
-    // Admin routes are protected by frontend JavaScript in script.js
-    // The ADMIN_ROUTES set is used for routing admin pages correctly
+    // ========== ADMIN ROUTE PROTECTION ==========
+    // Check if request is for an admin page
+    if (method === "GET" && (path.startsWith("/admin/") || path === "/admin")) {
+      // Extract session token from cookie
+      const cookieHeader = request.headers.get("Cookie") || "";
+      const sessionCookie = cookieHeader
+        .split(";")
+        .find((c) => c.trim().startsWith("deeds_session="));
+      const token = sessionCookie ? sessionCookie.split("=")[1].trim() : null;
+
+      // Verify admin session
+      const session = await verifySessionToken(token, resolveSessionSecret(env));
+
+      if (!session || session.role !== "admin") {
+        // Not authenticated or not an admin - redirect to login
+        return new Response(
+          `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Access Denied</title>
+  <script>
+    // Store intended destination
+    sessionStorage.setItem('returnUrl', '${path}');
+    // Redirect to login
+    window.location.href = '/login.html';
+  </script>
+</head>
+<body>
+  <p>Redirecting to login...</p>
+</body>
+</html>`,
+          {
+            status: 403,
+            headers: {
+              "Content-Type": "text/html",
+            },
+          }
+        );
+      }
+      // Admin authenticated - continue to serve the page via asset binding
+      // Fall through to asset serving
+    }
 
     // AUTH
     if (path === "/api/auth/signup" && method === "POST")
       return handleSignup(request, env);
     if (path === "/api/auth/login" && method === "POST")
       return handleLogin(request, env);
+    if (path === "/api/auth/logout" && method === "POST")
+      return handleLogout(request, env);
 
     // DEEDS
     if (path === "/api/deeds" && method === "POST")
