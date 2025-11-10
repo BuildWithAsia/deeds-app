@@ -267,8 +267,29 @@
       // Admin dashboard logic
       async function loadAdminStats() {
         try {
-          // Fetch all deeds
-          const deedsResponse = await fetch("/api/deeds");
+          // Get admin session token from localStorage
+          const profileData = localStorage.getItem("deeds.profile");
+          const profile = profileData ? JSON.parse(profileData) : null;
+          const token = profile?.sessionToken || profile?.token;
+
+          if (!token) {
+            console.error("No authentication token found");
+            return;
+          }
+
+          // Fetch all deeds with authentication
+          const deedsResponse = await fetch("/api/deeds?status=all", {
+            headers: {
+              "Authorization": `Bearer ${token}`,
+              "Accept": "application/json"
+            }
+          });
+
+          if (!deedsResponse.ok) {
+            console.error("Failed to fetch deeds:", deedsResponse.status);
+            return;
+          }
+
           const deeds = await deedsResponse.json();
 
           // Fetch leaderboard for user count
@@ -300,7 +321,18 @@
 
       function renderRecentDeeds(deeds) {
         const tbody = document.querySelector("[data-recent-deeds]");
-        if (!tbody || !deeds.length) return;
+        if (!tbody) return;
+
+        if (!deeds || deeds.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="4" class="py-8 text-center text-slate-500">
+                No deeds submitted yet
+              </td>
+            </tr>
+          `;
+          return;
+        }
 
         tbody.innerHTML = deeds
           .map(
