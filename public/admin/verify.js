@@ -1,10 +1,6 @@
-const translateWithFallback =
-  (typeof window !== "undefined" && window.deedsTranslateWithFallback) ||
-  ((key, fallback, vars) => fallback);
-
-function t(key, fallback, vars) {
-  return translateWithFallback(key, fallback, vars);
-}
+// Use translation function from script.js (already loaded)
+// Don't redeclare - script.js already defines translateWithFallback and t()
+// These functions are available globally from script.js
 
 const toneClassMap = {
   success: "text-teal-700",
