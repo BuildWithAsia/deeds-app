@@ -11,6 +11,7 @@
       crossorigin="anonymous"
     />
     <link rel="stylesheet" href="../styles.css" />
+    <link rel="stylesheet" href="admin-theme.css" />
     <style>
       .admin-theme {
         background: linear-gradient(to bottom right, #faf5ff, #ffffff, #f3e8ff);
@@ -74,14 +75,27 @@
 
       <main class="mx-auto max-w-6xl px-6 py-8">
         <!-- Welcome Section -->
-        <div class="mb-8">
-          <h1 class="text-3xl font-bold text-slate-900 mb-2">
-            Admin Dashboard
-          </h1>
-          <p class="text-slate-600">
-            Manage deeds verification, view analytics, and oversee community
-            activity.
-          </p>
+        <div class="mb-8 flex items-center justify-between">
+          <div>
+            <h1 class="text-3xl font-bold text-slate-900 mb-2">
+              Admin Dashboard
+            </h1>
+            <p class="text-slate-600">
+              Manage deeds verification, view analytics, and oversee community
+              activity.
+            </p>
+          </div>
+          <button
+            type="button"
+            onclick="loadAdminStats()"
+            class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-purple-600 hover:text-purple-700"
+            title="Refresh dashboard data"
+          >
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            Refresh
+          </button>
         </div>
 
         <!-- Stats Overview -->
@@ -263,33 +277,20 @@
     </div>
 
     <script src="../script.js" defer></script>
+    <script src="admin-core.js" defer></script>
     <script>
-      // Admin dashboard logic
+      // Admin dashboard logic with auto-refresh
+      let autoRefresher = null;
+
       async function loadAdminStats() {
         try {
-          // Get admin session token from localStorage
-          const profileData = localStorage.getItem("deeds.profile");
-          const profile = profileData ? JSON.parse(profileData) : null;
-          const token = profile?.sessionToken || profile?.token;
-
-          if (!token) {
-            console.error("No authentication token found");
-            return;
-          }
-
-          // Fetch all deeds with authentication
-          const deedsResponse = await fetch("/api/deeds?status=all", {
-            headers: {
-              "Authorization": `Bearer ${token}`,
-              "Accept": "application/json"
-            }
+          // Show loading states
+          document.querySelectorAll('[data-stat]').forEach((el) => {
+            el.textContent = '...';
           });
 
-          if (!deedsResponse.ok) {
-            console.error("Failed to fetch deeds:", deedsResponse.status);
-            return;
-          }
-
+          // Fetch all deeds with authentication using adminFetch
+          const deedsResponse = await adminFetch("/api/deeds?status=all");
           const deeds = await deedsResponse.json();
 
           // Fetch leaderboard for user count
@@ -314,8 +315,19 @@
 
           // Render recent deeds
           renderRecentDeeds(deeds.slice(0, 10));
+
+          // Show success toast on first load
+          if (!autoRefresher) {
+            toastManager.success(`Dashboard loaded: ${pending} pending, ${verified} verified deeds`, 3000);
+          }
         } catch (error) {
           console.error("Failed to load admin stats:", error);
+          toastManager.error("Failed to load dashboard data. Please refresh the page.");
+
+          // Reset stats to dash on error
+          document.querySelectorAll('[data-stat]').forEach((el) => {
+            el.textContent = '-';
+          });
         }
       }
 
@@ -356,8 +368,16 @@
           .join("");
       }
 
-      // Load stats on page load
-      document.addEventListener("DOMContentLoaded", loadAdminStats);
+      // Load stats on page load and setup auto-refresh
+      document.addEventListener("DOMContentLoaded", () => {
+        loadAdminStats();
+
+        // Auto-refresh every 30 seconds
+        autoRefresher = new AutoRefresh(loadAdminStats, 30000);
+        autoRefresher.start();
+
+        console.log('[Admin Dashboard] Auto-refresh enabled (30s interval)');
+      });
     </script>
   </body>
 </html>
