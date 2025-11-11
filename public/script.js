@@ -975,7 +975,14 @@ function hydrateDashboard(profile) {
 
 function attachLogout() {
   document.querySelectorAll('[data-action="logout"]').forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", async () => {
+      // Call server logout endpoint to clear session cookie
+      try {
+        await fetch('/api/auth/logout', { method: 'POST' });
+      } catch (error) {
+        console.error('Logout endpoint error:', error);
+      }
+
       clearProfile();
       window.location.href = "login.html";
     });
