@@ -73,6 +73,12 @@ function resolveSessionSecret(env) {
   return secret;
 }
 __name(resolveSessionSecret, "resolveSessionSecret");
+function createSessionCookie(token, maxAge, request) {
+  const isLocalhost = request.url.includes("localhost") || request.url.includes("127.0.0.1");
+  const secure = isLocalhost ? "" : " Secure;";
+  return `deeds_session=${token}; Path=/; HttpOnly;${secure} SameSite=Strict; Max-Age=${maxAge}`;
+}
+__name(createSessionCookie, "createSessionCookie");
 function base64UrlEncode(input) {
   return btoa(input).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
 }
@@ -166,7 +172,7 @@ async function handleSignup(request, env) {
   });
   response.headers.set(
     "Set-Cookie",
-    `deeds_session=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${30 * 24 * 60 * 60}`
+    createSessionCookie(token, 30 * 24 * 60 * 60, request)
   );
   return response;
 }
@@ -199,7 +205,7 @@ async function handleLogin(request, env) {
   });
   response.headers.set(
     "Set-Cookie",
-    `deeds_session=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${30 * 24 * 60 * 60}`
+    createSessionCookie(token, 30 * 24 * 60 * 60, request)
   );
   return response;
 }
@@ -208,7 +214,7 @@ async function handleLogout(request, env) {
   const response = responseWithMessage("Logged out successfully.", 200);
   response.headers.set(
     "Set-Cookie",
-    `deeds_session=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0`
+    createSessionCookie("", 0, request)
   );
   return response;
 }
