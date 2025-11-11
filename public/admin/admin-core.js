@@ -223,14 +223,17 @@ async function adminFetch(url, options = {}) {
     }
   };
 
-  const response = await fetch(url, { ...defaultOptions, ...options });
+  // Merge headers properly to avoid overwriting Authorization
+  const mergedOptions = {
+    ...defaultOptions,
+    ...options,
+    headers: {
+      ...defaultOptions.headers,
+      ...(options.headers || {})
+    }
+  };
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Request failed' }));
-    throw new Error(error.message || `Request failed with status ${response.status}`);
-  }
-
-  return response.json();
+  return fetch(url, mergedOptions);
 }
 
 window.adminFetch = adminFetch;
