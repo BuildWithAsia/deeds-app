@@ -72,12 +72,11 @@ let currentQueueItems = [];
 function requireAdminSession() {
   activeProfile = getActiveProfile();
   if (!activeProfile || !activeProfile.isAdmin || !activeProfile.sessionToken) {
-    setFlash(
+    toastManager.error(
       t(
         "verify.adminRequired",
         "Administrator session required. Please log in again.",
-      ),
-      "error",
+      )
     );
     return false;
   }
@@ -289,24 +288,18 @@ async function fetchQueue() {
 
     if (!token) {
       console.error("[Verify Queue] No session token found");
-      setFlash(
+      toastManager.error(
         t(
           "verify.missingToken",
           "Missing admin session token. Please sign in again.",
-        ),
-        "error",
+        )
       );
       updateSummaryBadges({ isUnavailable: true });
       return;
     }
 
     console.log("[Verify Queue] Fetching /api/deeds?status=pending");
-    const response = await fetch("/api/deeds?status=pending", {
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await adminFetch("/api/deeds?status=pending");
 
     console.log("[Verify Queue] Response status:", response.status);
 
@@ -318,7 +311,7 @@ async function fetchQueue() {
         `Unable to load pending deeds (status ${response.status}). Check console for details.`,
         { status: response.status },
       );
-      setFlash(message, "error");
+      toastManager.error(message);
       return;
     }
 
@@ -331,27 +324,24 @@ async function fetchQueue() {
     const pendingItems = items.filter((item) => item?.status === "pending");
     renderQueue(pendingItems);
     if (pendingItems.length === 0) {
-      setFlash(
-        t("verify.flashEmpty", "No pending deeds at the moment."),
-        "info",
+      toastManager.info(
+        t("verify.flashEmpty", "No pending deeds at the moment.")
       );
     } else {
-      setFlash(
+      toastManager.success(
         t(
           "verify.flashLoaded",
           `${pendingItems.length} pending deed${pendingItems.length === 1 ? "" : "s"} loaded.`,
-        ),
-        "success",
+        )
       );
     }
   } catch (error) {
     console.error("Failed to load pending deeds", error);
-    setFlash(
+    toastManager.error(
       t(
         "verify.flashError",
         "We couldn't load the pending queue. Please try again shortly.",
-      ),
-      "error",
+      )
     );
     updateSummaryBadges({ isUnavailable: true });
   } finally {
@@ -458,12 +448,11 @@ async function verifyDeed(deedId, button) {
 
   const token = activeProfile?.sessionToken;
   if (!token) {
-    setFlash(
+    toastManager.error(
       t(
         "verify.missingToken",
         "Missing admin session token. Please sign in again.",
-      ),
-      "error",
+      )
     );
     return;
   }
@@ -473,12 +462,10 @@ async function verifyDeed(deedId, button) {
   button.textContent = t("verify.verifying", "Verifying…");
 
   try {
-    const response = await fetch("/api/verify", {
+    const response = await adminFetch("/api/verify", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ deed_id: deedId }),
     });
@@ -510,14 +497,13 @@ async function verifyDeed(deedId, button) {
         ) || "Deed marked verified without awarding additional credits.";
     }
 
-    setFlash(successMessage, "success");
+    toastManager.success(successMessage, 6000);
     await fetchQueue();
   } catch (error) {
     console.error("Verify deed failed", error);
-    setFlash(
+    toastManager.error(
       error?.message ||
-        t("verify.verifyError", "Verification failed. Please retry."),
-      "error",
+        t("verify.verifyError", "Verification failed. Please retry.")
     );
   } finally {
     if (button.isConnected) {
@@ -547,9 +533,9 @@ function setupKeyboardShortcuts() {
         );
         if (verifyButton) {
           verifyButton.click();
-          setFlash(
+          toastManager.success(
             t("verify.keyboardHint", "✓ Keyboard shortcut used"),
-            "success",
+            2000
           );
         }
       }
@@ -558,7 +544,7 @@ function setupKeyboardShortcuts() {
     // R key: Refresh queue
     if (e.key === "r" || e.key === "R") {
       e.preventDefault();
-      setFlash(t("verify.refreshing", "Refreshing queue…"), "info");
+      toastManager.info(t("verify.refreshing", "Refreshing queue…"), 2000);
       fetchQueue();
     }
   });
@@ -568,7 +554,7 @@ window.addEventListener("DOMContentLoaded", () => {
   const refreshButton = document.querySelector('[data-action="refresh"]');
   if (refreshButton) {
     refreshButton.addEventListener("click", () => {
-      setFlash(t("verify.refreshing", "Refreshing queue…"), "info");
+      toastManager.info(t("verify.refreshing", "Refreshing queue…"), 2000);
       fetchQueue();
     });
   }
