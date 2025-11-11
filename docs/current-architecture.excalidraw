@@ -249,7 +249,7 @@
       "y": 310,
       "width": 310,
       "height": 185,
-      "text": "Auth:\n  POST /api/auth/signup ✅\n  POST /api/auth/login ✅\n  POST /api/auth/logout ✅ (NEW)\n\nDeeds:\n  POST /api/deeds (create)\n  GET /api/deeds?status=all|pending\n  POST /api/verify (admin only)\n\nOther:\n  GET /api/deed_catalog\n  GET /api/leaderboard\n  GET /api/profile",
+      "text": "Auth:\n  POST /api/auth/signup ✅\n  POST /api/auth/login ✅\n  POST /api/auth/logout ✅\n\nUser Routes:\n  POST /api/deeds (create)\n  GET /api/deeds (user's deeds)\n  GET /api/deed_catalog\n  GET /api/leaderboard\n  GET /api/profile\n\nAdmin Routes 🔒:\n  GET /api/deeds?status=all ✅\n  GET /api/deeds?status=pending ✅\n  POST /api/verify ✅",
       "fontSize": 14,
       "fontFamily": 3,
       "strokeColor": "#334155",

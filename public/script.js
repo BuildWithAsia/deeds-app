@@ -875,9 +875,10 @@ function attachAuthForms() {
           return;
         }
 
+        let normalizedProfile = null;
         if (result?.profile) {
           clearSelectedDeedTemplate();
-          saveProfile({
+          normalizedProfile = saveProfile({
             ...result.profile,
             timestamp: Date.now(),
           });
@@ -888,9 +889,9 @@ function attachAuthForms() {
           let redirectTarget = "dashboard.html";
           if (mode === "signup") {
             redirectTarget = "choose.html";
-          } else if (mode === "login" && result?.profile?.isAdmin) {
-            // Redirect admins to verify page
-            redirectTarget = "/admin/verify.html";
+          } else if (mode === "login" && normalizedProfile?.isAdmin) {
+            // Redirect admins to admin dashboard
+            redirectTarget = "/admin/dashboard.html";
           }
           window.location.href = redirectTarget;
         }, 400);
