@@ -76,7 +76,7 @@ function requireAdminSession() {
       t(
         "verify.adminRequired",
         "Administrator session required. Please log in again.",
-      )
+      ),
     );
     return false;
   }
@@ -292,7 +292,7 @@ async function fetchQueue() {
         t(
           "verify.missingToken",
           "Missing admin session token. Please sign in again.",
-        )
+        ),
       );
       updateSummaryBadges({ isUnavailable: true });
       return;
@@ -325,14 +325,14 @@ async function fetchQueue() {
     renderQueue(pendingItems);
     if (pendingItems.length === 0) {
       toastManager.info(
-        t("verify.flashEmpty", "No pending deeds at the moment.")
+        t("verify.flashEmpty", "No pending deeds at the moment."),
       );
     } else {
       toastManager.success(
         t(
           "verify.flashLoaded",
           `${pendingItems.length} pending deed${pendingItems.length === 1 ? "" : "s"} loaded.`,
-        )
+        ),
       );
     }
   } catch (error) {
@@ -341,7 +341,7 @@ async function fetchQueue() {
       t(
         "verify.flashError",
         "We couldn't load the pending queue. Please try again shortly.",
-      )
+      ),
     );
     updateSummaryBadges({ isUnavailable: true });
   } finally {
@@ -452,7 +452,7 @@ async function verifyDeed(deedId, button) {
       t(
         "verify.missingToken",
         "Missing admin session token. Please sign in again.",
-      )
+      ),
     );
     return;
   }
@@ -503,7 +503,7 @@ async function verifyDeed(deedId, button) {
     console.error("Verify deed failed", error);
     toastManager.error(
       error?.message ||
-        t("verify.verifyError", "Verification failed. Please retry.")
+        t("verify.verifyError", "Verification failed. Please retry."),
     );
   } finally {
     if (button.isConnected) {
@@ -535,7 +535,7 @@ function setupKeyboardShortcuts() {
           verifyButton.click();
           toastManager.success(
             t("verify.keyboardHint", "✓ Keyboard shortcut used"),
-            2000
+            2000,
           );
         }
       }

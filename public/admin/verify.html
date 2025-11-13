@@ -60,7 +60,12 @@
         pointer-events: none;
       }
       .gradient-title {
-        background: linear-gradient(120deg, #facc15 0%, #f97316 40%, #22c55e 100%);
+        background: linear-gradient(
+          120deg,
+          #facc15 0%,
+          #f97316 40%,
+          #22c55e 100%
+        );
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -196,9 +201,24 @@
     <!-- Navigation Bar -->
     <nav class="top-nav">
       <div class="nav-brand-container">
-        <a href="dashboard.html" class="nav-back-link" aria-label="Back to Admin Dashboard">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="nav-back-icon">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+        <a
+          href="dashboard.html"
+          class="nav-back-link"
+          aria-label="Back to Admin Dashboard"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="2.5"
+            stroke="currentColor"
+            class="nav-back-icon"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M15.75 19.5 8.25 12l7.5-7.5"
+            />
           </svg>
         </a>
         <span class="nav-brand-text">Deeds</span>
@@ -239,29 +259,77 @@
       </div>
     </nav>
 
-    <main style="max-width: 72rem; margin: 0 auto; padding: clamp(2rem, 4vw, 3rem); width: 100%;">
+    <main
+      style="
+        max-width: 72rem;
+        margin: 0 auto;
+        padding: clamp(2rem, 4vw, 3rem);
+        width: 100%;
+      "
+    >
       <!-- Header Section -->
-      <div style="margin-bottom: 2rem;">
-        <div style="display: flex; flex-wrap: wrap; align-items: start; justify-content: space-between; gap: 1rem; margin-bottom: 1rem;">
+      <div style="margin-bottom: 2rem">
+        <div
+          style="
+            display: flex;
+            flex-wrap: wrap;
+            align-items: start;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1rem;
+          "
+        >
           <div>
-            <p style="font-size: 0.75rem; letter-spacing: 0.18rem; text-transform: uppercase; color: #2dd4bf; margin: 0 0 0.75rem 0;" data-i18n="verify.heroEyebrow">
+            <p
+              style="
+                font-size: 0.75rem;
+                letter-spacing: 0.18rem;
+                text-transform: uppercase;
+                color: #2dd4bf;
+                margin: 0 0 0.75rem 0;
+              "
+              data-i18n="verify.heroEyebrow"
+            >
               Verification queue
             </p>
             <h1 class="gradient-title" data-i18n="verify.heroTitle">
               Review pending deeds
             </h1>
-            <p style="margin-top: 0.75rem; color: rgba(248, 250, 252, 0.75); max-width: 42rem;" data-i18n="verify.heroSubtitle">
-              Confirm proof links, then approve each deed to award credits instantly.
+            <p
+              style="
+                margin-top: 0.75rem;
+                color: rgba(248, 250, 252, 0.75);
+                max-width: 42rem;
+              "
+              data-i18n="verify.heroSubtitle"
+            >
+              Confirm proof links, then approve each deed to award credits
+              instantly.
             </p>
           </div>
-          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 1rem;">
-            <div style="display: flex; align-items: center; gap: 0.75rem; font-size: 0.75rem; color: rgba(248, 250, 252, 0.6);">
-              <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <div
+            style="
+              display: flex;
+              flex-wrap: wrap;
+              align-items: center;
+              gap: 1rem;
+            "
+          >
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                font-size: 0.75rem;
+                color: rgba(248, 250, 252, 0.6);
+              "
+            >
+              <div style="display: flex; align-items: center; gap: 0.5rem">
                 <kbd class="kbd">V</kbd>
                 <span>Verify</span>
               </div>
               <span>•</span>
-              <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <div style="display: flex; align-items: center; gap: 0.5rem">
                 <kbd class="kbd">R</kbd>
                 <span>Refresh</span>
               </div>
@@ -271,10 +339,20 @@
               class="landing-tag"
               data-action="refresh"
               data-i18n="verify.refreshButton"
-              style="display: inline-flex; align-items: center; gap: 0.5rem;"
+              style="display: inline-flex; align-items: center; gap: 0.5rem"
             >
-              <svg style="width: 1rem; height: 1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              <svg
+                style="width: 1rem; height: 1rem"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
               </svg>
               Refresh
             </button>
@@ -283,7 +361,14 @@
 
         <!-- Summary -->
         <div
-          style="display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; font-size: 0.875rem; color: rgba(248, 250, 252, 0.6);"
+          style="
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.875rem;
+            color: rgba(248, 250, 252, 0.6);
+          "
           data-role="summary"
           aria-live="polite"
         ></div>
@@ -298,40 +383,70 @@
       </div>
 
       <!-- Verification Queue Table -->
-      <div class="stat-card" style="padding: 0; overflow: hidden;">
+      <div class="stat-card" style="padding: 0; overflow: hidden">
         <!-- Loading State -->
         <div
-          style="display: flex; justify-content: center; padding: 3rem;"
+          style="display: flex; justify-content: center; padding: 3rem"
           data-role="loading"
         >
-          <div style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem;">
+          <div
+            style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 0.75rem;
+            "
+          >
             <div class="loading-spinner"></div>
-            <span style="color: rgba(248, 250, 252, 0.5);" data-i18n="verify.loading">Loading queue…</span>
+            <span
+              style="color: rgba(248, 250, 252, 0.5)"
+              data-i18n="verify.loading"
+              >Loading queue…</span
+            >
           </div>
         </div>
 
         <!-- Empty State -->
-        <div
-          class="empty-state"
-          data-role="empty"
-          hidden
-        >
-          <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <div class="empty-state" data-role="empty" hidden>
+          <svg
+            class="empty-icon"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
-          <p style="font-size: 1.125rem; font-weight: 600; color: rgba(248, 250, 252, 0.75);">All caught up!</p>
-          <p style="font-size: 0.875rem; color: rgba(248, 250, 252, 0.5);" data-i18n="verify.empty">
+          <p
+            style="
+              font-size: 1.125rem;
+              font-weight: 600;
+              color: rgba(248, 250, 252, 0.75);
+            "
+          >
+            All caught up!
+          </p>
+          <p
+            style="font-size: 0.875rem; color: rgba(248, 250, 252, 0.5)"
+            data-i18n="verify.empty"
+          >
             You're all caught up! New deeds will appear here as they arrive.
           </p>
         </div>
 
         <!-- Table -->
-        <div style="overflow-x: auto;" data-role="table" hidden>
+        <div style="overflow-x: auto" data-role="table" hidden>
           <table class="verify-table">
             <thead>
               <tr>
                 <th scope="col" data-i18n="verify.table.deed">Deed</th>
-                <th scope="col" data-i18n="verify.table.submitted">Submitted</th>
+                <th scope="col" data-i18n="verify.table.submitted">
+                  Submitted
+                </th>
                 <th scope="col" data-i18n="verify.table.proof">Proof</th>
                 <th scope="col" data-i18n="verify.table.action">Action</th>
               </tr>

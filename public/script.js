@@ -1,6 +1,6 @@
 // ========== SERVICE WORKER REGISTRATION ==========
 // Register service worker for PWA functionality
-if ("serviceWorker" in navigator) {
+if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker
       .register("/sw.js")
@@ -55,21 +55,23 @@ if ("serviceWorker" in navigator) {
 // Handle PWA install prompt
 let deferredInstallPrompt;
 
-window.addEventListener("beforeinstallprompt", (e) => {
-  // Prevent the mini-infobar from appearing on mobile
-  e.preventDefault();
-  // Stash the event so it can be triggered later
-  deferredInstallPrompt = e;
-  console.log("[PWA] Install prompt available");
+if (typeof window !== "undefined") {
+  window.addEventListener("beforeinstallprompt", (e) => {
+    // Prevent the mini-infobar from appearing on mobile
+    e.preventDefault();
+    // Stash the event so it can be triggered later
+    deferredInstallPrompt = e;
+    console.log("[PWA] Install prompt available");
 
-  // Optionally show install button
-  showInstallPromotion();
-});
+    // Optionally show install button
+    showInstallPromotion();
+  });
 
-window.addEventListener("appinstalled", () => {
-  console.log("[PWA] App installed successfully");
-  deferredInstallPrompt = null;
-});
+  window.addEventListener("appinstalled", () => {
+    console.log("[PWA] App installed successfully");
+    deferredInstallPrompt = null;
+  });
+}
 
 function showInstallPromotion() {
   // Check if we should show the install button
@@ -287,7 +289,10 @@ async function initLocalization() {
     if (stored && SUPPORTED_LANGUAGES.includes(stored)) {
       preferred = stored;
     } else {
-      const browserLang = navigator?.language?.slice(0, 2)?.toLowerCase();
+      const browserLang =
+        typeof navigator !== "undefined"
+          ? navigator.language?.slice(0, 2)?.toLowerCase()
+          : undefined;
       if (browserLang && SUPPORTED_LANGUAGES.includes(browserLang)) {
         preferred = browserLang;
       }
@@ -485,6 +490,17 @@ const PROTECTED_PAGES = new Set([
   "profile.html",
 ]);
 
+function normalizePageIdentifier(page) {
+  if (!page) {
+    return "";
+  }
+  const trimmed = String(page).trim();
+  if (!trimmed) {
+    return "";
+  }
+  return trimmed.includes(".") ? trimmed : `${trimmed}.html`;
+}
+
 const ADMIN_PAGES = new Set([
   "verify.html",
   "admin/verify.html",
@@ -518,8 +534,14 @@ if (typeof window !== "undefined") {
   const pathname = window.location.pathname;
   currentPage = pathname.split("/").pop();
   const fullPath = pathname.startsWith("/") ? pathname.slice(1) : pathname;
+  const normalizedCurrentPage = normalizePageIdentifier(currentPage);
+  const normalizedFullPath = normalizePageIdentifier(fullPath);
 
-  const isProtected = PROTECTED_PAGES.has(currentPage);
+  const isProtected =
+    PROTECTED_PAGES.has(currentPage) ||
+    PROTECTED_PAGES.has(normalizedCurrentPage) ||
+    PROTECTED_PAGES.has(fullPath) ||
+    PROTECTED_PAGES.has(normalizedFullPath);
   const isAdmin =
     ADMIN_PAGES.has(currentPage) ||
     ADMIN_PAGES.has(fullPath) ||
@@ -979,9 +1001,9 @@ function attachLogout() {
     button.addEventListener("click", async () => {
       // Call server logout endpoint to clear session cookie
       try {
-        await fetch('/api/auth/logout', { method: 'POST' });
+        await fetch("/api/auth/logout", { method: "POST" });
       } catch (error) {
-        console.error('Logout endpoint error:', error);
+        console.error("Logout endpoint error:", error);
       }
 
       clearProfile();
@@ -1376,7 +1398,11 @@ if (typeof window !== "undefined") {
     attachPasswordToggles();
     autoFocusEmailField();
 
-    if (!sessionProfile && PROTECTED_PAGES.has(currentPage)) {
+    if (
+      !sessionProfile &&
+      (PROTECTED_PAGES.has(currentPage) ||
+        PROTECTED_PAGES.has(normalizePageIdentifier(currentPage)))
+    ) {
       const profile = getProfile();
       if (profile && !isProfileExpired(profile)) {
         setSessionProfile(profile);
@@ -1388,7 +1414,8 @@ if (typeof window !== "undefined") {
       refreshDeedStatus(sessionProfile);
     }
 
-    if (currentPage === "leaderboard.html") {
+    const normalizedPage = normalizePageIdentifier(currentPage);
+    if (normalizedPage === "leaderboard.html") {
       await loadLeaderboard();
       window.setInterval(loadLeaderboard, 10_000);
     }

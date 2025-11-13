@@ -47,7 +47,12 @@
         pointer-events: none;
       }
       .gradient-title {
-        background: linear-gradient(120deg, #facc15 0%, #f97316 40%, #22c55e 100%);
+        background: linear-gradient(
+          120deg,
+          #facc15 0%,
+          #f97316 40%,
+          #22c55e 100%
+        );
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
@@ -133,9 +138,24 @@
     <!-- Navigation Bar -->
     <nav class="top-nav">
       <div class="nav-brand-container">
-        <a href="dashboard.html" class="nav-back-link" aria-label="Admin Dashboard">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="nav-back-icon">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+        <a
+          href="dashboard.html"
+          class="nav-back-link"
+          aria-label="Admin Dashboard"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="2.5"
+            stroke="currentColor"
+            class="nav-back-icon"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M15.75 19.5 8.25 12l7.5-7.5"
+            />
           </svg>
         </a>
         <span class="nav-brand-text">Deeds</span>
@@ -146,25 +166,33 @@
         <a href="verify.html" class="landing-tag">Verification Queue</a>
         <a href="../dashboard.html" class="landing-tag">User View</a>
         <a href="../leaderboard.html" class="landing-tag">Leaderboard</a>
-        <button
-          type="button"
-          class="landing-tag"
-          data-action="logout"
-        >
+        <button type="button" class="landing-tag" data-action="logout">
           Log out
         </button>
       </div>
     </nav>
 
-    <main style="max-width: 72rem; margin: 0 auto; padding: clamp(2rem, 4vw, 3rem); width: 100%;">
+    <main
+      style="
+        max-width: 72rem;
+        margin: 0 auto;
+        padding: clamp(2rem, 4vw, 3rem);
+        width: 100%;
+      "
+    >
       <!-- Welcome Section -->
       <div class="mb-8 flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 class="gradient-title mb-3">
-            Admin Dashboard
-          </h1>
-          <p style="color: rgba(248, 250, 252, 0.75); font-size: 1.125rem; max-width: 42rem;">
-            Manage deeds verification, view analytics, and oversee community activity.
+          <h1 class="gradient-title mb-3">Admin Dashboard</h1>
+          <p
+            style="
+              color: rgba(248, 250, 252, 0.75);
+              font-size: 1.125rem;
+              max-width: 42rem;
+            "
+          >
+            Manage deeds verification, view analytics, and oversee community
+            activity.
           </p>
         </div>
         <button
@@ -172,11 +200,22 @@
           onclick="handleManualRefresh()"
           id="refresh-button"
           class="landing-tag"
-          style="display: inline-flex; align-items: center; gap: 0.5rem;"
+          style="display: inline-flex; align-items: center; gap: 0.5rem"
           title="Refresh dashboard data"
         >
-          <svg id="refresh-icon" class="h-4 w-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          <svg
+            id="refresh-icon"
+            class="h-4 w-4 transition-transform"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
           </svg>
           <span id="refresh-text">Refresh</span>
         </button>
@@ -185,21 +224,21 @@
       <!-- Stats Overview -->
       <div class="grid gap-6 md:grid-cols-3 mb-8">
         <!-- Pending Deeds -->
-        <div class="stat-card" style="position: relative;">
+        <div class="stat-card" style="position: relative">
           <p class="stat-label">⏱ Pending Deeds</p>
           <p class="stat-value" data-stat="pending">-</p>
           <p class="stat-label">Awaiting verification</p>
         </div>
 
         <!-- Total Verified -->
-        <div class="stat-card" style="position: relative;">
+        <div class="stat-card" style="position: relative">
           <p class="stat-label">✓ Verified Deeds</p>
           <p class="stat-value" data-stat="verified">-</p>
           <p class="stat-label">Total approved</p>
         </div>
 
         <!-- Total Users -->
-        <div class="stat-card" style="position: relative;">
+        <div class="stat-card" style="position: relative">
           <p class="stat-label">👥 Active Users</p>
           <p class="stat-value" data-stat="users">-</p>
           <p class="stat-label">Community members</p>
@@ -210,15 +249,32 @@
       <div class="grid gap-6 md:grid-cols-2 mb-8">
         <!-- Verification Queue -->
         <a href="verify.html" class="action-card">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-            <h3 style="font-size: 1.25rem; font-weight: 600; color: #facc15;">
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 1rem;
+            "
+          >
+            <h3 style="font-size: 1.25rem; font-weight: 600; color: #facc15">
               Verification Queue
             </h3>
-            <svg style="width: 1.5rem; height: 1.5rem; color: #facc15;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            <svg
+              style="width: 1.5rem; height: 1.5rem; color: #facc15"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"
+              />
             </svg>
           </div>
-          <p style="color: rgba(248, 250, 252, 0.75); margin-bottom: 1rem;">
+          <p style="color: rgba(248, 250, 252, 0.75); margin-bottom: 1rem">
             Review and approve pending deed submissions from community members.
           </p>
           <span class="admin-badge">
@@ -227,27 +283,57 @@
         </a>
 
         <!-- Analytics -->
-        <div class="action-card" style="opacity: 0.6; cursor: default;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-            <h3 style="font-size: 1.25rem; font-weight: 600; color: rgba(248, 250, 252, 0.75);">
+        <div class="action-card" style="opacity: 0.6; cursor: default">
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 1rem;
+            "
+          >
+            <h3
+              style="
+                font-size: 1.25rem;
+                font-weight: 600;
+                color: rgba(248, 250, 252, 0.75);
+              "
+            >
               Analytics
             </h3>
-            <span style="background: rgba(148, 163, 184, 0.2); color: rgba(248, 250, 252, 0.5); padding: 0.25rem 0.75rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 600;">
+            <span
+              style="
+                background: rgba(148, 163, 184, 0.2);
+                color: rgba(248, 250, 252, 0.5);
+                padding: 0.25rem 0.75rem;
+                border-radius: 0.375rem;
+                font-size: 0.75rem;
+                font-weight: 600;
+              "
+            >
               Coming Soon
             </span>
           </div>
-          <p style="color: rgba(248, 250, 252, 0.5); margin-bottom: 1rem;">
-            View detailed reports on community engagement, verification trends, and impact metrics.
+          <p style="color: rgba(248, 250, 252, 0.5); margin-bottom: 1rem">
+            View detailed reports on community engagement, verification trends,
+            and impact metrics.
           </p>
         </div>
       </div>
 
       <!-- Recent Activity -->
-      <div class="stat-card" style="position: relative; padding: 2rem;">
-        <h3 style="font-size: 1.5rem; font-weight: 700; color: rgba(248, 250, 252, 0.95); margin-bottom: 1.5rem;">
+      <div class="stat-card" style="position: relative; padding: 2rem">
+        <h3
+          style="
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: rgba(248, 250, 252, 0.95);
+            margin-bottom: 1.5rem;
+          "
+        >
           Recent Deeds
         </h3>
-        <div style="overflow-x: auto;">
+        <div style="overflow-x: auto">
           <table class="activity-table">
             <thead>
               <tr>
@@ -259,10 +345,28 @@
             </thead>
             <tbody data-recent-deeds>
               <tr>
-                <td colspan="4" style="padding: 3rem; text-align: center;">
-                  <div style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem;">
-                    <div style="width: 2rem; height: 2rem; border: 3px solid rgba(250, 204, 21, 0.3); border-top-color: #facc15; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                    <span style="color: rgba(248, 250, 252, 0.5);">Loading recent activity...</span>
+                <td colspan="4" style="padding: 3rem; text-align: center">
+                  <div
+                    style="
+                      display: flex;
+                      flex-direction: column;
+                      align-items: center;
+                      gap: 0.75rem;
+                    "
+                  >
+                    <div
+                      style="
+                        width: 2rem;
+                        height: 2rem;
+                        border: 3px solid rgba(250, 204, 21, 0.3);
+                        border-top-color: #facc15;
+                        border-radius: 50%;
+                        animation: spin 1s linear infinite;
+                      "
+                    ></div>
+                    <span style="color: rgba(248, 250, 252, 0.5)"
+                      >Loading recent activity...</span
+                    >
                   </div>
                 </td>
               </tr>
@@ -270,8 +374,7 @@
           </table>
         </div>
       </div>
-      </main>
-    </div>
+    </main>
 
     <script src="../script.js" defer></script>
     <script src="admin-core.js" defer></script>
@@ -284,21 +387,21 @@
         if (isRefreshing) return;
 
         isRefreshing = true;
-        const button = document.getElementById('refresh-button');
-        const icon = document.getElementById('refresh-icon');
-        const text = document.getElementById('refresh-text');
+        const button = document.getElementById("refresh-button");
+        const icon = document.getElementById("refresh-icon");
+        const text = document.getElementById("refresh-text");
 
         button.disabled = true;
-        icon.classList.add('animate-spin');
-        text.textContent = 'Refreshing...';
+        icon.classList.add("animate-spin");
+        text.textContent = "Refreshing...";
 
         try {
           await loadAdminStats();
         } finally {
           setTimeout(() => {
             button.disabled = false;
-            icon.classList.remove('animate-spin');
-            text.textContent = 'Refresh';
+            icon.classList.remove("animate-spin");
+            text.textContent = "Refresh";
             isRefreshing = false;
           }, 500);
         }
@@ -307,8 +410,8 @@
       async function loadAdminStats() {
         try {
           // Show loading states
-          document.querySelectorAll('[data-stat]').forEach((el) => {
-            el.textContent = '...';
+          document.querySelectorAll("[data-stat]").forEach((el) => {
+            el.textContent = "...";
           });
 
           // Fetch all deeds with authentication using adminFetch
@@ -340,15 +443,20 @@
 
           // Show success toast on first load
           if (!autoRefresher) {
-            toastManager.success(`Dashboard loaded: ${pending} pending, ${verified} verified deeds`, 3000);
+            toastManager.success(
+              `Dashboard loaded: ${pending} pending, ${verified} verified deeds`,
+              3000,
+            );
           }
         } catch (error) {
           console.error("Failed to load admin stats:", error);
-          toastManager.error("Failed to load dashboard data. Please refresh the page.");
+          toastManager.error(
+            "Failed to load dashboard data. Please refresh the page.",
+          );
 
           // Reset stats to dash on error
-          document.querySelectorAll('[data-stat]').forEach((el) => {
-            el.textContent = '-';
+          document.querySelectorAll("[data-stat]").forEach((el) => {
+            el.textContent = "-";
           });
         }
       }
@@ -400,7 +508,7 @@
         autoRefresher = new AutoRefresh(loadAdminStats, 30000);
         autoRefresher.start();
 
-        console.log('[Admin Dashboard] Auto-refresh enabled (30s interval)');
+        console.log("[Admin Dashboard] Auto-refresh enabled (30s interval)");
       });
     </script>
   </body>
