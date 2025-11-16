@@ -268,20 +268,25 @@ function renderQueue(items) {
 }
 
 async function fetchQueue() {
-  if (!requireAdminSession()) {
-    return;
-  }
-
   const loading = document.querySelector('[data-role="loading"]');
   const emptyState = document.querySelector('[data-role="empty"]');
   const table = document.querySelector('[data-role="table"]');
 
-  if (loading) loading.hidden = false;
-  if (emptyState) emptyState.hidden = true;
-  if (table) table.hidden = true;
-  updateSummaryBadges({ isLoading: true });
-
   try {
+    if (!requireAdminSession()) {
+      // Hide loading and show error state
+      if (loading) loading.hidden = true;
+      if (emptyState) emptyState.hidden = true;
+      if (table) table.hidden = true;
+      updateSummaryBadges({ isUnavailable: true });
+      return;
+    }
+
+    if (loading) loading.hidden = false;
+    if (emptyState) emptyState.hidden = true;
+    if (table) table.hidden = true;
+    updateSummaryBadges({ isLoading: true });
+
     const token = activeProfile?.sessionToken;
     console.log("[Verify Queue] Active profile:", activeProfile);
     console.log("[Verify Queue] Token present:", !!token);
@@ -295,6 +300,7 @@ async function fetchQueue() {
         ),
       );
       updateSummaryBadges({ isUnavailable: true });
+      if (loading) loading.hidden = true;
       return;
     }
 
@@ -306,12 +312,29 @@ async function fetchQueue() {
     if (!response.ok) {
       const errorText = await response.text();
       console.error("[Verify Queue] Failed:", response.status, errorText);
-      const message = t(
-        "verify.loadError",
-        `Unable to load pending deeds (status ${response.status}). Check console for details.`,
-        { status: response.status },
-      );
-      toastManager.error(message);
+
+      // If unauthorized, prompt user to log in again
+      if (response.status === 401) {
+        toastManager.error(
+          t(
+            "verify.sessionExpired",
+            "Your session has expired. Please log in again.",
+          ),
+        );
+        // Clear the invalid session after a delay
+        setTimeout(() => {
+          localStorage.removeItem("deeds.profile");
+          window.location.href = "/login.html";
+        }, 2000);
+      } else {
+        const message = t(
+          "verify.loadError",
+          `Unable to load pending deeds (status ${response.status}). Check console for details.`,
+          { status: response.status },
+        );
+        toastManager.error(message);
+      }
+      updateSummaryBadges({ isUnavailable: true });
       return;
     }
 

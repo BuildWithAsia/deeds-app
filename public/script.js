@@ -556,6 +556,9 @@ if (typeof window !== "undefined") {
       // Non-admin trying to access admin pages
       alert("Access denied. Administrator privileges required.");
       window.location.href = "/dashboard.html";
+    } else if (!isAdmin && profile.isAdmin && currentPage === "dashboard.html") {
+      // Admin accessing regular dashboard - redirect to admin dashboard
+      window.location.href = "/admin/dashboard.html";
     } else {
       setSessionProfile(profile);
       if (document.readyState === "loading") {
